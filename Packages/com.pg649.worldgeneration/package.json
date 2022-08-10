@@ -1,0 +1,8 @@
+{
+    "name": "com.pg649.worldgeneration",
+    "version": "1.0.0",
+    "displayName": "PG649 World Generation",
+    "description": "World Generation PG649.",
+    "unity": "2021.3",
+    "unityRelease": "3f1"
+}
