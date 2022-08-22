@@ -7,38 +7,50 @@ public class Tree<T>
 {
     protected Tree<T> root, parent;
     protected List<Tree<T>> children;
-    protected T label;
+    public T label;
     protected int depth, height;
 
-    public Tree(T label){
+
+
+
+    public Tree(){
+    this.label = default(T);
+    this.children = new List<Tree<T>>();
+    this.parent = null;
+    this.root = this;
+    this.depth = 0;
+    this.height = 0; //only root has height 
+    }
+    public Tree(T label) : this(){
         this.label = label;
-        this.children = new List<Tree<T>>();
-        this.parent = null;
-        this.root = this;
-        this.depth = 0;
-        this.height = 0; //only root has height 
+    }
+    //height, depth broken here
+    public Tree(T label, List<Tree<T>> children, Tree<T> parent = null) : this(label){
+        this.children = children;
+        foreach(Tree<T> t in children){
+            t.Parent = this;
+        }
     }
 
-    public Tree(T label, List<Tree<T>> children, Tree<T> parent = null){
-        this.label = label;
-        this.children = children;
-    }
+
+
 
     public bool IsLeaf(){
         return (children.Count == 0);
     }
-
     public List<Tree<T>> Leaves(){
         List<Tree<T>> l = new List<Tree<T>>();
         if(IsLeaf()) l.Add(this);
         else foreach(Tree<T> t in children) l.AddRange(t.Leaves());
         return l;
     }
-
-    public Tree<V> Map<V>(Func<T,V> f){
-        return new Tree<V>(f(label), children.Select( x => x.Map<V>(f)).ToList());
+    public Tree<V> MapNew<V>(Func<T,V> f){
+        Tree<V> t = new Tree<V>(f(label));
+        foreach(Tree<T> c in children){
+            t.AddChild(c.MapNew<V>(f));
+        }
+        return t;
     }
-
     public void AddChild(Tree<T> t){
         t.Depth = depth + 1;
         t.Parent = this;
@@ -47,6 +59,17 @@ public class Tree<T>
         children.Add(t);
     }
 
+
+
+
+    public T Label{
+        get{return label;}
+        set{label = value;}
+    }
+
+    public List<Tree<T>> Children{
+        get{return children;}
+    }
     public Tree<T> Parent{
         get{return parent;}
         set{parent = value;}

@@ -4,16 +4,22 @@ using System;
 using System.Linq;
 
 public class SPTree : Tree<int[]>{
-
-    public static readonly Action<SPTree>[] splitMethod = new Action<SPTree>[] {KDTreeRandom()};
-
+    protected int[] point;
     protected Random rand;
-
     protected int d;
     
+
+
+
     public SPTree(IEnumerable<int> size, Random rand = null) : base(size.ToArray()){
         this.d = label.Length;
+        this.point = new int[d];
         this.rand = rand ?? new Random();
+    }
+
+    public SPTree(IEnumerable<int> size, Action<SPTree> fSplit, Func<SPTree, bool> fStop = null) : this(size){
+        fStop = fStop ?? (x => false);
+        Split(fSplit, fStop, recursive : true);
     }
 
     public void Split(Action<SPTree> fSplit, Func<SPTree, bool> fStop, bool recursive = false){
@@ -24,20 +30,10 @@ public class SPTree : Tree<int[]>{
         }
     }
 
-    public void Extrude3D(Action<SPTree> f){
-        if(d < 3){
-            f(this);
-            foreach(SPTree child in children) child.Extrude3D(f);
-        }
-    }
 
-    public static SPTree GenerateSPTree(IEnumerable<int> size, Action<SPTree> fSplit, Func<SPTree, bool> fStop = null){
-        SPTree t = new SPTree(size);
-        fStop = fStop ?? (x => false);
-        t.Split(fSplit, fStop, recursive : true);
-        return t;   
-    }
 
+
+    //probably only works for 2d right now
     public static Action<SPTree> KDTreeRandom(IEnumerable<int> pMinSize = null){
         return x => {
             int [] minSize = pMinSize != null ? pMinSize.ToArray() : Enumerable.Repeat(0,x.d).ToArray();
@@ -48,15 +44,17 @@ public class SPTree : Tree<int[]>{
                 int[] leftSize = (int[])x.label.Clone();
                 leftSize[splitDim] = splitPoint;
                 SPTree left = new SPTree(leftSize, rand : x.rand);
+                left.Point = x.Point;
                 int[] rightSize = (int[])x.label.Clone();
                 rightSize[splitDim] = x.label[splitDim]-splitPoint;
                 SPTree right = new SPTree(rightSize, rand : x.rand);
+                right.Point = (int[])x.Point.Clone();
+                right.Point[splitDim] += splitPoint;
                 x.AddChild(left);
                 x.AddChild(right);
             }
         };
     }
-
     public static Action<SPTree> QuadTreeUniform(){
         return z => {
             if(z.d == 2 && z.label.All(x => x > 0)){
@@ -72,6 +70,9 @@ public class SPTree : Tree<int[]>{
         };
     }
 
+
+
+
     public static Func<SPTree, bool> StopMinSize(IEnumerable<int> pMinSize = null){
         return x => {
             if(x.label.Length == pMinSize.Count()){
@@ -84,25 +85,49 @@ public class SPTree : Tree<int[]>{
                 return b;
             }
             else return true;
-        };  
+        };
     }
 
+
+
+
+    public void Extrude3D(Action<SPTree> f){
+        if(d < 3){
+            f(this);
+            foreach(SPTree child in children) child.Extrude3D(f);
+        }
+    }
     //max excluding
-    public static Action<SPTree> Extrude3DMinMax(int min, int max){
-        return z => {
-            Array.Resize(ref z.label, 3);
-            z.label[2] = z.rand.Next(min, max);
-        };
+    public void Extrude3DMinMax(int min, int max){
+        if(d == 2){
+            Array.Resize(ref label, 3);
+            label[2] = rand.Next(min, max);
+            d = 3;
+        }
+    }
+    //???
+    public void Extrude3DDepth(int[] values){
+        if(values.Length == Root.Height + 1 && d == 2){
+            Array.Resize(ref label, 3);
+            label[2] = values[depth];
+        }
     }
 
-    public static Action<SPTree> Extrude3DDepth(int[] values){
-        return z => {
-            if(values.Length == z.Root.Height + 1){
-                Array.Resize(ref z.label, 3);
-                z.label[2] = values[z.Depth];
-            }
-        };
+
+
+
+
+    public int[] Point{
+        get{return point;}
+        set{point = value; }
+    }
+    public Random Rand{
+        get{return rand;}
+        set{rand = value; }
     }
 
+    public int D{
+        get{return d;}
+    }
 }
 
