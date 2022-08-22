@@ -21,7 +21,7 @@ public class DungeonTree : SPTree {
         for(int i = 0; i < d; i++){
             minMaxMargin[i] = new Tuple<int,int>(0,0);
         }
-        fHeight = fHeightAreaBased();
+        fHeight = fHeightSizeBased();
     }
     public DungeonTree(SPTree tree) : this(tree.Label, tree.Rand){
         point = tree.Point;
@@ -41,8 +41,8 @@ public class DungeonTree : SPTree {
         return x.Rand.Next(min, max+1);
     };
     }
-    private static Func<SPTree,float> fHeightAreaBased(int min = 2, int max = int.MaxValue, float scale = 1f){
-        return x => MathF.Min(MathF.Max(min, x.label[0]*x.label[1]*scale), max);
+    private static Func<SPTree,float> fHeightSizeBased(int min = 2, int max = int.MaxValue, float scale = 1f){
+        return x => MathF.Min(MathF.Max(min, x.label[0]+x.label[1]*scale), max);
     }
 
 
@@ -51,19 +51,19 @@ public class DungeonTree : SPTree {
 
     public void PlaceRoomsBinary(){
         if(IsLeaf()){
-            int leftMargin = rand.Next(minMaxMargin[0].Item1,minMaxMargin[0].Item2);
-            int rightMargin = rand.Next(minMaxMargin[0].Item1,minMaxMargin[0].Item2);
-            int depthLowerMargin = rand.Next(minMaxMargin[1].Item1,minMaxMargin[1].Item2);
-            int depthUpperMargin = rand.Next(minMaxMargin[1].Item1,minMaxMargin[1].Item2);
+            int leftMargin = rand.Next(MinMaxMargin[0].Item1,minMaxMargin[0].Item2+1);
+            int rightMargin = rand.Next(minMaxMargin[0].Item1,minMaxMargin[0].Item2+1);
+            int depthLowerMargin = rand.Next(minMaxMargin[1].Item1,minMaxMargin[1].Item2+1);
+            int depthUpperMargin = rand.Next(minMaxMargin[1].Item1,minMaxMargin[1].Item2+1);
            if(d == 2){
                 room = new DungeonRoom(label[0]-leftMargin-rightMargin, label[1]-depthLowerMargin-depthUpperMargin, fHeight(this));
-                roomPoint = new Vector3(point[0]+leftMargin, 0, point[1] + depthUpperMargin);
+                roomPoint = new Vector3(point[0]+leftMargin, 0, point[1] + depthLowerMargin);
            }
            else if(d == 3){
-                int heightLowerMargin = d > 2 ? rand.Next(minMaxMargin[2].Item1,minMaxMargin[2].Item2) : 0;
-                int heightUpperMargin = d > 2 ? rand.Next(minMaxMargin[2].Item1,minMaxMargin[2].Item2) : 0;
+                int heightLowerMargin = d > 2 ? rand.Next(minMaxMargin[2].Item1,minMaxMargin[2].Item2+1) : 0;
+                int heightUpperMargin = d > 2 ? rand.Next(minMaxMargin[2].Item1,minMaxMargin[2].Item2+1) : 0;
                 room = new DungeonRoom(label[0]-leftMargin-rightMargin, label[1]-depthLowerMargin-depthUpperMargin, label[2]-heightLowerMargin-heightUpperMargin);
-                roomPoint = new Vector3(point[0]+leftMargin, point[2] + heightLowerMargin, point[1] + depthUpperMargin);
+                roomPoint = new Vector3(point[0]+leftMargin, point[2] + heightLowerMargin, point[1] + depthLowerMargin);
            }
         }
         else{
@@ -93,19 +93,27 @@ public class DungeonTree : SPTree {
 
 
 
-
     public GameObject ToGameObject(){
         GameObject go = new GameObject("DungeonTree");
+        go.AddComponent<DungeonTreeMeta>().SetValues(label, point);
         if(corridor != null){
             corridor.ToGameObject().transform.parent = go.transform;
         }
-        if(room != null) room.ToGameObject().transform.parent = go.transform;
+        if(room != null){
+            GameObject rgo = room.ToGameObject();
+            rgo.transform.parent = go.transform;
+            rgo.transform.localPosition += roomPoint- new Vector3(Point[0],0,Point[1]);
+        }
         foreach(DungeonTree c in children){
-            c.ToGameObject().transform.parent = go.transform;
+            GameObject cgo = c.ToGameObject();
+            cgo.transform.parent = go.transform;
+            cgo.transform.localPosition += new Vector3(c.Point[0],0,c.Point[1]) - new Vector3(Point[0],0,Point[1]);
+            //d==2 ? new Vector3(c.Point[0],0,c.Point[1]) : new Vector3(c.Point[0],c.Point[2], c.Point[1]);
+
+            //cgo.transform.localPosition += d==2 ? new Vector3(c.Point[0],0,c.Point[1]) : new Vector3(c.Point[0],c.Point[2], c.Point[1]);
         }
         return go;
     }
-
 
 
 
@@ -121,7 +129,20 @@ public class DungeonTree : SPTree {
         get{return room;}
     }
 }
+public class DungeonTreeMeta : MonoBehaviour{
+    public int[] partitionSize;
+    public int[] point;
 
+    public DungeonTreeMeta(){
+
+    }
+
+
+    public void SetValues(int[] size, int[] point){
+        this.partitionSize = size;
+        this.point = point;
+    }
+}
 
 
 
@@ -155,12 +176,34 @@ public class DungeonRoom{
     }
     public GameObject ToGameObject(){
         GameObject go = new GameObject("DungeonRoom");
+        DungeonRoomMeta drm = go.AddComponent<DungeonRoomMeta>();
+        GameObject p = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        p.transform.parent = go.transform;
+        p.transform.Rotate(new Vector3(90,0,0));
+        p.transform.localScale = new Vector3(width,depth,1);
+        p.transform.localPosition += new Vector3(width/2, 0, depth/2);
 
+        drm.SetValues(width,depth,height);
         return go;
     }
 
 }
+public class DungeonRoomMeta : MonoBehaviour{
+    public int width, depth;
+    public float height;
 
+
+    public DungeonRoomMeta(){
+
+    }
+
+
+    public void SetValues(int width, int depth, float height){
+        this.width = width;
+        this.depth = depth;
+        this.height = height;
+    }
+}
 
 
 
@@ -173,10 +216,8 @@ public class DungeonCorridor {
 
 
 
-
     public GameObject ToGameObject(){
         GameObject go = new GameObject("DungeonCorridor");
-
         return go;
     }
 }
