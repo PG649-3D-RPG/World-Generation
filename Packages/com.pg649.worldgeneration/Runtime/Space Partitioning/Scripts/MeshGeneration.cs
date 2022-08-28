@@ -6,39 +6,43 @@ using UnityEngine;
 public static class MeshGeneration{
 
 
-static Mesh GenerateMesh(int[] size){
-    List<Vector3> vertices = new List<Vector3>();
-    List<int> triangles = new List<int>();
-    if(size.Length > 0 && size.Length < 4){
-        vertices.Add(new Vector3(0,0,0));
-        vertices.Add(new Vector3(size[0],0,0));
-        if(size.Length > 1){
-            foreach(Vector3 v in vertices){
-                vertices.Add(v + new Vector3(0,0,size[1]));
-            }
-            triangles.Add(0);
-            triangles.Add(1);
-            triangles.Add(2);
-            triangles.Add(0);
-            triangles.Add(2);
-            triangles.Add(3);
-        }
-        if(size.Length > 2){
-            foreach(Vector3 v in vertices){
-                vertices.Add(v + new Vector3(0,size[2]));
-            }
-            //...
-        }
-        if(size.Length == 1){
-            triangles.Add(0);
-            triangles.Add(1);
-            triangles.Add(0);
-        }
-    }
+//only for xz quads atm
+public static GameObject Quad(float width, float height){
+    GameObject go = new GameObject("Quad");
     Mesh mesh = new Mesh();
-    mesh.vertices = vertices.ToArray();
-    mesh.triangles = triangles.ToArray();
-    return mesh;
-}
+    Vector3[] vertices = new Vector3[4]{
+        new Vector3(0,0,0),
+        new Vector3(width, 0, 0),
+        new Vector3(width, 0, height),
+        new Vector3(0, 0, height)
+    };
+    mesh.vertices = vertices;
+    int[] triangles = new int[6]{
+        0,3,1,
+        3,2,1
+    };
+    mesh.triangles = triangles;
+    Vector3[] normals = new Vector3[4]
+        {
+            Vector3.up,
+            Vector3.up,
+            Vector3.up,
+            Vector3.up
+        };
+    mesh.normals = normals;
+    Vector2[] uv = new Vector2[4]
+    {
+      new Vector2(0, 0),
+      new Vector2(1, 0),
+      new Vector2(1, 1),
+      new Vector2(0, 1)
+    };
+    mesh.uv = uv;   
+    MeshRenderer meshRenderer = go.AddComponent<MeshRenderer>();
+    meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+    MeshFilter meshFilter = go.AddComponent<MeshFilter>();
+    meshFilter.mesh = mesh;
+    return go;
+    }
 
 }

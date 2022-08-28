@@ -15,11 +15,12 @@ public class SPTest : MonoBehaviour
     {
         int[] size = new int[] {width,depth};
         int[] minSize = new int[] {minWidth,minDepth};
-        Tuple<int,int>[] minMaxMargin = new Tuple<int,int>[] {new Tuple<int,int> (1,1), new Tuple<int,int> (1,1) };
+        Tuple<int,int>[] minMaxMargin = new Tuple<int,int>[] {new Tuple<int,int> (1,2), new Tuple<int,int> (1,2) };
         SPTree spTree = new SPTree(size, SPTree.KDTreeRandom(minSize));
         DungeonTree dTree = new DungeonTree(spTree);
         Debug.Log(dTree.GetType());
         dTree.MinMaxMargin = minMaxMargin;
+        Debug.Log("minmaxmargin:" + dTree.MinMaxMargin[0].Item1 + dTree.MinMaxMargin[0].Item2);
         dTree.PlaceRooms();
         dTree.ToGameObject();
     }

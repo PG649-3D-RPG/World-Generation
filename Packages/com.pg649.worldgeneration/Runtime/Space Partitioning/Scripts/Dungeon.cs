@@ -50,18 +50,21 @@ public class DungeonTree : SPTree {
 
 
     public void PlaceRoomsBinary(){
+        Tuple<int,int>[] rMinMaxMargin = ((DungeonTree)root).MinMaxMargin;
         if(IsLeaf()){
-            int leftMargin = rand.Next(MinMaxMargin[0].Item1,minMaxMargin[0].Item2+1);
-            int rightMargin = rand.Next(minMaxMargin[0].Item1,minMaxMargin[0].Item2+1);
-            int depthLowerMargin = rand.Next(minMaxMargin[1].Item1,minMaxMargin[1].Item2+1);
-            int depthUpperMargin = rand.Next(minMaxMargin[1].Item1,minMaxMargin[1].Item2+1);
+            int leftMargin = rand.Next(rMinMaxMargin[0].Item1,rMinMaxMargin[0].Item2+1);
+            Debug.Log(String.Format("rMinMaxMargin[0]: {0},{1}",rMinMaxMargin[0].Item1,rMinMaxMargin[0].Item2));
+            Debug.Log(String.Format("left margin: {0}",leftMargin));
+            int rightMargin = rand.Next(rMinMaxMargin[0].Item1,rMinMaxMargin[0].Item2+1);
+            int depthLowerMargin = rand.Next(rMinMaxMargin[1].Item1,rMinMaxMargin[1].Item2+1);
+            int depthUpperMargin = rand.Next(rMinMaxMargin[1].Item1,rMinMaxMargin[1].Item2+1);
            if(d == 2){
                 room = new DungeonRoom(label[0]-leftMargin-rightMargin, label[1]-depthLowerMargin-depthUpperMargin, fHeight(this));
                 roomPoint = new Vector3(point[0]+leftMargin, 0, point[1] + depthLowerMargin);
            }
            else if(d == 3){
-                int heightLowerMargin = d > 2 ? rand.Next(minMaxMargin[2].Item1,minMaxMargin[2].Item2+1) : 0;
-                int heightUpperMargin = d > 2 ? rand.Next(minMaxMargin[2].Item1,minMaxMargin[2].Item2+1) : 0;
+                int heightLowerMargin = d > 2 ? rand.Next(rMinMaxMargin[2].Item1,rMinMaxMargin[2].Item2+1) : 0;
+                int heightUpperMargin = d > 2 ? rand.Next(rMinMaxMargin[2].Item1,rMinMaxMargin[2].Item2+1) : 0;
                 room = new DungeonRoom(label[0]-leftMargin-rightMargin, label[1]-depthLowerMargin-depthUpperMargin, label[2]-heightLowerMargin-heightUpperMargin);
                 roomPoint = new Vector3(point[0]+leftMargin, point[2] + heightLowerMargin, point[1] + depthLowerMargin);
            }
@@ -117,14 +120,19 @@ public class DungeonTree : SPTree {
 
 
 
-
+    //fix me
     public Tuple<int,int>[] MinMaxMargin{
         get{ return minMaxMargin;}
         set{
-            if(value.Length != d) throw new DimensionMismatchException(String.Format("Dimension of MinMaxMargin Array (value: {0}) is not equal to the dimension of the DungeonTree (value = {1}).", value, d));
-            else minMaxMargin = value;
+            if(value.Length != d) throw new DimensionMismatchException(String.Format("Dimension of MinMaxMargin Array (value: {1}) is not equal to the dimension of the DungeonTree (value = {1}).", value, d));
+            else{
+                minMaxMargin = value;
+                foreach(DungeonTree c in children){
+                    c.MinMaxMargin = value;
+                }
             }
-    }
+        }
+        }
     public DungeonRoom Room{
         get{return room;}
     }
@@ -177,12 +185,8 @@ public class DungeonRoom{
     public GameObject ToGameObject(){
         GameObject go = new GameObject("DungeonRoom");
         DungeonRoomMeta drm = go.AddComponent<DungeonRoomMeta>();
-        GameObject p = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        p.transform.parent = go.transform;
-        p.transform.Rotate(new Vector3(90,0,0));
-        p.transform.localScale = new Vector3(width,depth,1);
-        p.transform.localPosition += new Vector3(width/2, 0, depth/2);
-
+        GameObject q = MeshGeneration.Quad(width,depth);
+        q.transform.parent = go.transform;
         drm.SetValues(width,depth,height);
         return go;
     }
@@ -225,7 +229,7 @@ public class DungeonCorridor {
 public class DimensionMismatchException : Exception{
 
     public DimensionMismatchException(int a, int b) :
-        base(String.Format("Dimensions are not equal for values {0} and {1}",a,b)){}
+        base(String.Format("Dimensions are not equal for values {1} and {1}",a,b)){}
 
     public DimensionMismatchException(string s) : base(s){}
 
