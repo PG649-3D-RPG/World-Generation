@@ -62,10 +62,22 @@ public class SPTree : Tree<int[]>{
                 int x_ = z.label[0] - x;
                 int y = z.label[1]/2;
                 int y_ = z.label[1] -y;
-                z.AddChild(new SPTree(new int[] {x,y}, rand : z.rand));
-                z.AddChild(new SPTree(new int[] {x_,y}, rand : z.rand));
-                z.AddChild(new SPTree(new int[] {x,y_}, rand : z.rand));
-                z.AddChild(new SPTree(new int[] {x_,y_}, rand : z.rand));
+                SPTree c1 = new SPTree(new int[] {x,y}, rand : z.rand);
+                c1.Point = z.Point;
+                SPTree c2 = new SPTree(new int[] {x_,y}, rand : z.rand);
+                c2.Point = (int[])z.Point.Clone();
+                c2.Point[0] += x_;
+                SPTree c3 = new SPTree(new int[] {x,y_}, rand : z.rand);
+                c3.Point = (int[])z.Point.Clone();
+                c3.Point[1] += y;
+                SPTree c4 = new SPTree(new int[] {x_,y_}, rand : z.rand);
+                c4.Point = (int[])z.Point.Clone();
+                c4.Point[0] += x_;
+                c4.Point[1] += y_;
+                z.AddChild(c1);
+                z.AddChild(c2);
+                z.AddChild(c3);
+                z.AddChild(c4);
             }
         };
     }

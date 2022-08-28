@@ -36,12 +36,12 @@ public class DungeonTree : SPTree {
 
 
 
-    private static Func<SPTree,float> fHeight2DMinMax(int min, int max){
+    public static Func<SPTree,float> fHeight2DMinMax(int min, int max){
     return x => {
         return x.Rand.Next(min, max+1);
     };
     }
-    private static Func<SPTree,float> fHeightSizeBased(int min = 2, int max = int.MaxValue, float scale = 1f){
+    public static Func<SPTree,float> fHeightSizeBased(int min = 2, int max = int.MaxValue, float scale = 1f){
         return x => MathF.Min(MathF.Max(min, x.label[0]+x.label[1]*scale), max);
     }
 
@@ -49,12 +49,10 @@ public class DungeonTree : SPTree {
 
 
 
-    public void PlaceRoomsBinary(){
+    public void PlaceRooms(){
         Tuple<int,int>[] rMinMaxMargin = ((DungeonTree)root).MinMaxMargin;
         if(IsLeaf()){
             int leftMargin = rand.Next(rMinMaxMargin[0].Item1,rMinMaxMargin[0].Item2+1);
-            Debug.Log(String.Format("rMinMaxMargin[0]: {0},{1}",rMinMaxMargin[0].Item1,rMinMaxMargin[0].Item2));
-            Debug.Log(String.Format("left margin: {0}",leftMargin));
             int rightMargin = rand.Next(rMinMaxMargin[0].Item1,rMinMaxMargin[0].Item2+1);
             int depthLowerMargin = rand.Next(rMinMaxMargin[1].Item1,rMinMaxMargin[1].Item2+1);
             int depthUpperMargin = rand.Next(rMinMaxMargin[1].Item1,rMinMaxMargin[1].Item2+1);
@@ -70,26 +68,7 @@ public class DungeonTree : SPTree {
            }
         }
         else{
-            foreach(DungeonTree c in children) c.PlaceRoomsBinary();
-        }
-    }
-    public void PlaceRoomsQuad(){
-        
-    }
-    public void PlaceRoomsOct(){
-        
-    }
-    public void PlaceRooms(){
-        switch(children.Count){
-            case 2:
-                PlaceRoomsBinary(); 
-                break;
-            case 4:
-                PlaceRoomsQuad();
-                break;
-            case 8:
-                PlaceRoomsOct();
-                break;
+            foreach(DungeonTree c in children) c.PlaceRooms();
         }
     }
 
@@ -111,9 +90,6 @@ public class DungeonTree : SPTree {
             GameObject cgo = c.ToGameObject();
             cgo.transform.parent = go.transform;
             cgo.transform.localPosition += new Vector3(c.Point[0],0,c.Point[1]) - new Vector3(Point[0],0,Point[1]);
-            //d==2 ? new Vector3(c.Point[0],0,c.Point[1]) : new Vector3(c.Point[0],c.Point[2], c.Point[1]);
-
-            //cgo.transform.localPosition += d==2 ? new Vector3(c.Point[0],0,c.Point[1]) : new Vector3(c.Point[0],c.Point[2], c.Point[1]);
         }
         return go;
     }
@@ -133,6 +109,11 @@ public class DungeonTree : SPTree {
             }
         }
         }
+    public Func<SPTree, float> FHeight{
+        get {return fHeight;}
+        set {fHeight = value;
+        foreach(DungeonTree c in children) c.FHeight = value;}
+    }
     public DungeonRoom Room{
         get{return room;}
     }
@@ -187,6 +168,16 @@ public class DungeonRoom{
         DungeonRoomMeta drm = go.AddComponent<DungeonRoomMeta>();
         GameObject q = MeshGeneration.Quad(width,depth);
         q.transform.parent = go.transform;
+        GameObject w1 = MeshGeneration.Quad(depth,height, plane : MeshGeneration.Plane.YZ);
+        w1.transform.parent = go.transform;
+        GameObject w2 = MeshGeneration.Quad(width,height, plane : MeshGeneration.Plane.XY);
+        w2.transform.parent = go.transform;
+        w2.transform.localPosition += new Vector3(0,0,depth);
+        GameObject w3 = MeshGeneration.Quad(width,height, plane : MeshGeneration.Plane.XY);
+        w3.transform.parent = go.transform;
+        GameObject w4 = MeshGeneration.Quad(depth,height, plane : MeshGeneration.Plane.YZ);
+        w4.transform.parent = go.transform;
+        w4.transform.localPosition += new Vector3(width, 0,0);
         drm.SetValues(width,depth,height);
         return go;
     }
