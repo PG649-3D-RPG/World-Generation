@@ -1,38 +1,24 @@
-using System.Collections;
 using System.Collections.Generic;
 using System;
-using System.Linq;
 
-public class Tree<T>
-{
+public class Tree<T>{
     protected Tree<T> root, parent;
     protected List<Tree<T>> children;
-    public T label;
+    protected T node;
     protected int depth, height;
 
 
-
-
     public Tree(){
-    this.label = default(T);
+    this.node = default(T);
     this.children = new List<Tree<T>>();
     this.parent = null;
     this.root = this;
     this.depth = 0;
     this.height = 0; //only root has height 
     }
-    public Tree(T label) : this(){
-        this.label = label;
+    public Tree(T node) : this(){
+        this.node = node;
     }
-    //height, depth broken here
-    public Tree(T label, List<Tree<T>> children, Tree<T> parent = null) : this(label){
-        this.children = children;
-        foreach(Tree<T> t in children){
-            t.Parent = this;
-        }
-    }
-
-
 
 
     public bool IsLeaf(){
@@ -44,8 +30,16 @@ public class Tree<T>
         else foreach(Tree<T> t in children) l.AddRange(t.Leaves());
         return l;
     }
+    public List<T> LeafNodes(){
+        List<T> l = new List<T>();
+        if(IsLeaf()) l.Add(node);
+        else foreach(Tree<T> t in children) l.AddRange(t.LeafNodes());
+        return l;
+    }
+
+
     public Tree<V> MapNew<V>(Func<T,V> f){
-        Tree<V> t = new Tree<V>(f(label));
+        Tree<V> t = new Tree<V>(f(node));
         foreach(Tree<T> c in children){
             t.AddChild(c.MapNew<V>(f));
         }
@@ -58,15 +52,15 @@ public class Tree<T>
         root.Height = Math.Max(root.Height, t.Depth);
         children.Add(t);
     }
-
-
-
-
-    public T Label{
-        get{return label;}
-        set{label = value;}
+    public void AddChild(T cn){
+        AddChild(new Tree<T>(cn));
     }
 
+
+    public T Node{
+        get{return node;}
+        set{node = value;}
+    }
     public List<Tree<T>> Children{
         get{return children;}
     }
@@ -82,10 +76,8 @@ public class Tree<T>
         get{ return depth;}
         set{ depth = value;}
     }
-
     public int Height{
         get{ return height;}
         set{ height = value;}
     }
-
 }

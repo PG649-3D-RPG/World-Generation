@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public static class MeshGeneration{
@@ -9,7 +6,6 @@ public enum Plane{
     XY, XZ, YZ
 }
 
-//only for xz quads atm
 public static GameObject Quad(float width, float height, Plane plane = Plane.XZ){
     GameObject go = new GameObject("Quad");
     Mesh mesh = new Mesh();
@@ -27,7 +23,7 @@ public static GameObject Quad(float width, float height, Plane plane = Plane.XZ)
     else if(plane == Plane.YZ){
         vertices = new Vector3[] {
             new Vector3(0,0,0),
-             new Vector3(0, 0, width),
+            new Vector3(0, 0, width),
             new Vector3(0, height, width),
             new Vector3(0, height, 0)
             
@@ -67,10 +63,9 @@ public static GameObject Quad(float width, float height, Plane plane = Plane.XZ)
     return go;
     }
 
-    public static GameObject Wall(Vector3 point, Vector3 dir, float length, float width, float heigth){
+    public static GameObject Wall(Vector3 point1, Vector3 point2, float width, float heigth){
         GameObject go = new GameObject("Wall");
 
         return go;
     }
-
 }
