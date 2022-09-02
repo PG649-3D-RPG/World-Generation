@@ -91,9 +91,8 @@ public class DungeonRoomMeta : MonoBehaviour{
 public class DungeonCorridor : IGameObjectable {
     private List<Vector3> path;
     private List<Vector3> boundaryPoints;
+
     public DungeonCorridor(List<Vector3> path, float width, float height){}
-
-
 
 
     public GameObject ToGameObject(){
@@ -110,8 +109,6 @@ public class DimensionMismatchException : Exception{
     public DimensionMismatchException(string s) : base(s){}
 
 }
-
-
 
 
 public class DungeonTreeNode : SPTreeNode{
@@ -224,12 +221,30 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         }
         else{
             foreach(DungeonTreeT c in children){
-                c.PlaceRooms(p);
+                c.PlaceRooms( p : p);
             }
             switch(children.Count){
+                //fix me
+                //case 2d tree only
                 case 2:
+                    if(node.Size[0] == children[0].Node.Size[0]){
+                        node.RoomsNorth.AddRange(children[1].Node.RoomsNorth);
+                        node.RoomsSouth.AddRange(children[0].Node.RoomsSouth);
+                        node.RoomsEast.AddRange(children[0].Node.RoomsEast);
+                        node.RoomsEast.AddRange(children[1].Node.RoomsEast);
+                        node.RoomsWest.AddRange(children[0].Node.RoomsWest);
+                        node.RoomsWest.AddRange(children[1].Node.RoomsWest);
+                    }   
+                    else{
+                        node.RoomsNorth.AddRange(children[0].Node.RoomsNorth);
+                        node.RoomsNorth.AddRange(children[1].Node.RoomsNorth);
+                        node.RoomsSouth.AddRange(children[0].Node.RoomsSouth);
+                        node.RoomsSouth.AddRange(children[1].Node.RoomsSouth);
+                        node.RoomsEast.AddRange(children[1].Node.RoomsEast);
+                        node.RoomsWest.AddRange(children[0].Node.RoomsWest);
+                    }
                     break;
-                case 4: 
+                case 4:
                     break;
                 case 8:
                     break;
@@ -240,8 +255,30 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
     }
 
 
-    public void PlaceCorridors(float minWidth, float maxWidth){
-        
+    public void PlaceCorridors(float minWidth, float maxWidth, float minHeight, float maxHeight){
+        float width = (float)node.Rand.NextDouble()*(maxWidth-minWidth)+minWidth;
+        float height = (float)node.Rand.NextDouble()*(maxHeight-minHeight)+minHeight;
+        switch(children.Count){
+                //fix me
+                //case 2d tree only
+                case 2:
+                    
+                    if(node.Size[0] == children[0].Node.Size[0]){
+                        int cr1 = node.Rand.Next(0,children[0].Node.RoomsNorth.Count);
+                        int cr2 = node.Rand.Next(0,children[1].Node.RoomsSouth.Count);
+
+                    }   
+                    else{
+                        
+                    }
+                    break;
+                case 4:
+                    break;
+                case 8:
+                    break;
+                default:
+                    break;
+            }
     }
 
 

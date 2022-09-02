@@ -1,9 +1,10 @@
 using UnityEngine;
 using System;
-using System.Linq;
 
 public class Generate2DDungeon : MonoBehaviour
 {
+    [Header("Random")]
+    public int seed = 42;
     [Header("Space Partitioning")]
     public int width = 256;
     public int depth = 256;
@@ -19,27 +20,31 @@ public class Generate2DDungeon : MonoBehaviour
     [Header("Corridors")]
     public float minCorridorWidth = 1;
     public float maxCorridorWidth = 1;
+    public float minCorridorHeight = 2;
+    public float maxCorridorHeight = 3;
     void Start()
     {
         int[] size = new int[] {width,depth};
         int[] minSize = new int[] {minPartitionWidth,minPartitionDepth};
         Tuple<int,int>[] minMaxMargin = new Tuple<int,int>[] {new Tuple<int,int> (leftRightMinMargin,leftRightMaxMargin), new Tuple<int,int> (frontBackMinMargin,frontBackMaxMargin)};
         SPTreeT spTree;
+        System.Random rand = new System.Random(seed);
         switch(partitionMode){
             case SPTreeT.PartitionMode.KDTreeRandom:
-                spTree = new SPTreeT(size, SPTreeT.KDTreeRandom(minSize));
+                spTree = new SPTreeT(size, SPTreeT.KDTreeRandom(minSize), rand : rand);
                 break;
             case SPTreeT.PartitionMode.QuadTreeUniform:
-                spTree = new SPTreeT(size, SPTreeT.QuadTreeUniform(), SPTreeT.StopMinSize(minSize));
+                spTree = new SPTreeT(size, SPTreeT.QuadTreeUniform(), SPTreeT.StopMinSize(minSize), rand : rand);
                 break;
             default:
-                spTree = new SPTreeT(size, SPTreeT.KDTreeRandom(minSize));
+                spTree = new SPTreeT(size, SPTreeT.KDTreeRandom(minSize), rand : rand);
                 break;
         }
         DungeonTreeT dTree = new DungeonTreeT(spTree);
         dTree.Root.Node.FHeight = DungeonTreeNode.fHeight2DMinMax(3,4);
         dTree.Root.Node.MinMaxMargin = minMaxMargin;
         dTree.PlaceRooms(roomPlacementProbability);
+        dTree.PlaceCorridors(minCorridorWidth, maxCorridorWidth, minCorridorHeight, maxCorridorHeight);
         dTree.ToGameObject();
     }
 

@@ -49,8 +49,8 @@ public class SPTreeT : Tree<SPTreeNode>{
     }
 
 
-    public SPTreeT(IEnumerable<int> size, Random rand = null) : base(new SPTreeNode(size.ToArray())){}
-    public SPTreeT(IEnumerable<int> size, Action<SPTreeT> fSplit, Func<SPTreeT, bool> fStop = null) : this(size){
+    public SPTreeT(IEnumerable<int> size, Random rand = null) : base(new SPTreeNode(size.ToArray(), rand : rand)){}
+    public SPTreeT(IEnumerable<int> size, Action<SPTreeT> fSplit, Func<SPTreeT, bool> fStop = null, Random rand = null) : this(size, rand : rand){
         fStop = fStop ?? (x => false);
         Split(fSplit, fStop, recursive : true);
     }
