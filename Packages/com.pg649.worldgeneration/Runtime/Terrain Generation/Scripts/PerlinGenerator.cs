@@ -49,9 +49,14 @@ public class PerlinGenerator : MonoBehaviour
     // [SerializeField]
     // public float ScaleObstacle = 10f;
     private readonly int TerrainSize = 256; // must be 2^n
-    public int ObstacleSize = 10;
-    public int NumberOfObstacles = 5;
-    public int BorderSize = 10;
+    public readonly int ObstacleSize = 10;
+    public readonly int NumberOfObstacles = 5;
+    public readonly int BorderSize = 10;
+
+    public int? RandomSeed = null;
+
+    public readonly int MaxBorderSize = 12;
+    public readonly int MinBorderSize = 4;
 
     // public bool GenerateObstacles = true;
     // [SerializeField] public GameObject ObstaclePrefab;
@@ -77,6 +82,7 @@ public class PerlinGenerator : MonoBehaviour
     {
         // OffsetX = Random.Range(0f, 9999f);
         // OffsetY = Random.Range(0f, 9999f);
+        if (RandomSeed.HasValue) Random.InitState(RandomSeed.Value);
         Terrain = GetComponent<Terrain>();
         RegenerateTerrain();
     }
@@ -136,34 +142,84 @@ public class PerlinGenerator : MonoBehaviour
         }
 
         // hills around edges
-        for (var x = 0; x < BorderSize; x++)
+        //slower naive random variant
+        // left border
+        var randBorderSize = BorderSize;
+        for (var y = 0; y < TerrainSize; y++)
         {
-            for (var y = 0; y < TerrainSize; y++)
+            randBorderSize += Random.Range(-1, 2);
+            if (randBorderSize < MinBorderSize) randBorderSize = MinBorderSize;
+            if (randBorderSize > MaxBorderSize) randBorderSize = MaxBorderSize;
+            for (var x = 0; x < randBorderSize; x++)
             {
                 heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
             }
         }
-        for (var x = TerrainSize - BorderSize; x < TerrainSize; x++)
+        // right border
+        randBorderSize = BorderSize;
+        for (var y = 0; y < TerrainSize; y++)
         {
-            for (var y = 0; y < TerrainSize; y++)
+            randBorderSize += Random.Range(-1, 2);
+            if (randBorderSize < MinBorderSize) randBorderSize = MinBorderSize;
+            if (randBorderSize > MaxBorderSize) randBorderSize = MaxBorderSize;
+            for (var x = TerrainSize - randBorderSize; x < TerrainSize; x++)
             {
                 heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
             }
         }
-        for (var y = 0; y < BorderSize; y++)
+        //top border
+        randBorderSize = BorderSize;
+        for (var x = 0; x < TerrainSize; x++) //TODO dont start at 0 but start at where top left corner stopped for no overlap
         {
-            for (var x = 0; x < TerrainSize; x++)
+            randBorderSize += Random.Range(-1, 2);
+            if (randBorderSize < MinBorderSize) randBorderSize = MinBorderSize;
+            if (randBorderSize > MaxBorderSize) randBorderSize = MaxBorderSize;
+            for (var y = 0; y < randBorderSize; y++)
             {
                 heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
             }
         }
-        for (var y = TerrainSize - BorderSize; y < TerrainSize; y++)
+        // bottom border
+        randBorderSize = BorderSize;
+        for (var x = 0; x < TerrainSize; x++)
         {
-            for (var x = 0; x < TerrainSize; x++)
+            randBorderSize += Random.Range(-1, 2);
+            if (randBorderSize < MinBorderSize) randBorderSize = MinBorderSize;
+            if (randBorderSize > MaxBorderSize) randBorderSize = MaxBorderSize;
+            for (var y = TerrainSize - randBorderSize; y < TerrainSize; y++)
             {
                 heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
             }
         }
+
+        // for (var x = 0; x < BorderSize; x++)
+        // {
+        //     for (var y = 0; y < TerrainSize; y++)
+        //     {
+        //         heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
+        //     }
+        // }
+        // for (var x = TerrainSize - BorderSize; x < TerrainSize; x++)
+        // {
+        //     for (var y = 0; y < TerrainSize; y++)
+        //     {
+        //         heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
+        //     }
+        // }
+        // for (var y = 0; y < BorderSize; y++)
+        // {
+        //     for (var x = 0; x < TerrainSize; x++)
+        //     {
+        //         heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
+        //     }
+        // }
+        // for (var y = TerrainSize - BorderSize; y < TerrainSize; y++)
+        // {
+        //     for (var x = 0; x < TerrainSize; x++)
+        //     {
+        //         heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
+        //     }
+        // }
 
 
         // Generate obstacles
@@ -181,14 +237,16 @@ public class PerlinGenerator : MonoBehaviour
         //         // newObstacle.transform.localPosition = new Vector3(x, terrainData.GetHeight(x, y) + 2f, y);
         //     }
         // }
+
+        //TODO Random edges for obstacles as well
         for (int i = 0; i < NumberOfObstacles; i++)
         {
             // TODO check if there is overlap with another obstacle => try again up to n times
-            var obstacleX = Random.Range(BorderSize + 1, TerrainSize - BorderSize - ObstacleSize);
-            var obstacleY = Random.Range(BorderSize + 1, TerrainSize - BorderSize - ObstacleSize);
-            for (int x = obstacleX; x < obstacleX + ObstacleSize; x++)
+            var obstaclePosX = Random.Range(BorderSize + 1, TerrainSize - BorderSize - ObstacleSize);
+            var obstaclePosY = Random.Range(BorderSize + 1, TerrainSize - BorderSize - ObstacleSize);
+            for (int x = obstaclePosX; x < obstaclePosX + ObstacleSize; x++)
             {
-                for (int y = obstacleY; y < obstacleY + ObstacleSize; y++)
+                for (int y = obstaclePosY; y < obstaclePosY + ObstacleSize; y++)
                 {
                     heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3, (float)y / TerrainSize * Scale * 3);
                 }
