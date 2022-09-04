@@ -251,6 +251,12 @@ MonoBehaviour:
   GenerateHeights: 1
   Depth: 10
   Scale: 2.5
+  MaxBorderSize: 12
+  MinBorderSize: 5
+  smoothBorder: 1
+  strongerSmoothing: 0
+  smoothRadius: 5
+  smoothPasses: 3
 --- !u!154 &577872030
 TerrainCollider:
   m_ObjectHideFlags: 0

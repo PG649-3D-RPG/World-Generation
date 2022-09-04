@@ -346,22 +346,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Distance: 1
-  m_Angle: 90
-  m_InitialDirection: 1
+  m_Angle: 28
+  m_InitialDirection: 0
   m_Thickness: 0.1
   m_CrossSections: 4
   m_CrossSectionDivisions: 2
   m_TranslatePoints: 1
-  m_StartString: '[|C]+(90)[AH]-(180)[AH]+(90)T+(90)[G-(90)L]-(180)[G+(90)L]'
-  m_Iterations: 2
+  m_StartString: FFFA
+  m_Iterations: 7
   m_Rules:
-  - A=F(0.25)F(0.25)
-  - L=F(0.35)F(0.3)^V
-  - T=F(0.4)F(0.4)
-  - C=F(0.3)
-  - G=F(0.2)
-  - V=F(0.2)
-  - H=F(0.15)
+  - A=!"[B]////[B]////B
+  - B=&FFFA
 --- !u!114 &1734616960
 MonoBehaviour:
   m_ObjectHideFlags: 0

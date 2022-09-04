@@ -201,6 +201,7 @@ public class SkeletonGenerator
             this.primitive_mesh = primitive_mesh;
 
             this.boneCategory = BoneAdd.literalCategoryMap[t.Item2];
+            // this.boneCategory = BoneCategory.Other;
             children = new List<BoneTree>();
         }
 
