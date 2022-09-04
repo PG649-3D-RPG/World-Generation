@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+// using System.Linq;
 using UnityEngine;
 // using Unity.AI.Navigation;
 using Random = UnityEngine.Random;
@@ -64,7 +66,9 @@ public class PerlinGenerator : MonoBehaviour
 
     private int BorderPadding = 10;
 
-    public bool ShowBorderZone = true;
+    private bool[,] borderZone;
+    private bool[,] ObstacleZone;
+    private Dictionary<string, int> CustomTerrainLayerIndices = new();
     // public bool GenerateObstacles = true;
     // [SerializeField] public GameObject ObstaclePrefab;
     // public float ObstacleThreshold = 0.9f;
@@ -90,7 +94,9 @@ public class PerlinGenerator : MonoBehaviour
         // OffsetX = Random.Range(0f, 9999f);
         // OffsetY = Random.Range(0f, 9999f);
         if (RandomSeed.HasValue) Random.InitState(RandomSeed.Value);
+
         Terrain = GetComponent<Terrain>();
+        // DestroyImmediate(Terrain);
         RegenerateTerrain();
     }
 
@@ -108,8 +114,15 @@ public class PerlinGenerator : MonoBehaviour
         //     GameObject.Destroy(child.gameObject);
         // }
 
+        //TODO all state management code should be removed by outsourcing the editor control to a meta-environment generator class
         // Generate Terrain
+        foreach (var layerName in CustomTerrainLayerIndices.Keys)
+        {
+            RemoveTerrainLayer(Terrain.terrainData, layerName);
+        }
+        CustomTerrainLayerIndices.Clear();
         Terrain.terrainData = GenerateTerrain(Terrain.terrainData);
+        Terrain.Flush();
 
         // if (!BakeNavMesh) return; // Skipp Nav Mesh generation
         // NavMeshSurface.BuildNavMesh();
@@ -134,7 +147,8 @@ public class PerlinGenerator : MonoBehaviour
     {
         terrainData.heightmapResolution = TerrainSize + 1;
         terrainData.size = new Vector3(TerrainSize, Depth, TerrainSize);
-
+        borderZone = new bool[TerrainSize, TerrainSize];
+        ObstacleZone = new bool[TerrainSize, TerrainSize];
 
         // Generate terrain data
         // if (!GenerateHeights) return terrainData; // Do not generate terrain with heights
@@ -166,7 +180,6 @@ public class PerlinGenerator : MonoBehaviour
         Vector2Int cornerBottomRight = new(1, 1);
         // coordinates where borders are located
         bool[,] bordersApplied = new bool[TerrainSize, TerrainSize];
-        bool[,] borderZone = new bool[TerrainSize, TerrainSize]; //TODO add method to show the borderzone
 
         // left border
         int randBorderSize = Random.Range(MinBorderSize, MaxBorderSize + 1);
@@ -396,6 +409,7 @@ public class PerlinGenerator : MonoBehaviour
                 for (int y = obstaclePosY; y < obstaclePosY + ObstacleSize; y++)
                 {
                     heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3, (float)y / TerrainSize * Scale * 3);
+                    ObstacleZone[x, y] = true;
                 }
             }
         }
@@ -403,6 +417,48 @@ public class PerlinGenerator : MonoBehaviour
         terrainData.SetHeights(0, 0, heights);
         return terrainData;
     }
+
+    public void ShowBorderZone()
+    {
+        Texture2D texture = new(TerrainSize, TerrainSize);
+        for (int y = 0; y < texture.height; y++)
+        {
+            for (int x = 0; x < texture.width; x++)
+            {
+                Color color = borderZone[x, y] ? Color.red : Color.clear;
+                texture.SetPixel(x, y, color);
+            }
+        }
+        texture.Apply();
+        SetTerrainTexture(Terrain.terrainData, texture, TerrainSize, "border");
+    }
+
+    public void RemoveBorderZoneLayer()
+    {
+        RemoveTerrainLayer(Terrain.terrainData, "border");
+    }
+
+    public void ShowObstacleZone()
+    {
+        Texture2D texture = new(TerrainSize, TerrainSize);
+        for (int y = 0; y < texture.height; y++)
+        {
+            for (int x = 0; x < texture.width; x++)
+            {
+                //TODO fix: Unity texture and terrain coords are not the same
+                Color color = ObstacleZone[x, y] ? Color.green : Color.clear;
+                texture.SetPixel(x, y, color);
+            }
+        }
+        texture.Apply();
+        SetTerrainTexture(Terrain.terrainData, texture, TerrainSize, "obstacles");
+    }
+
+    public void RemoveObstacleZone()
+    {
+        RemoveTerrainLayer(Terrain.terrainData, "obstacles");
+    }
+
     private float GetSmoothedValue(Vector2Int pos, float[,] heights, bool strongSmoothing)
     {
         // calculate neighbours -> pos > 0 this works
@@ -421,5 +477,64 @@ public class PerlinGenerator : MonoBehaviour
         float mean = (heightTopLeft + heightTop + heightTopRight + heightLeft + heightRight + heightBottomLeft + heightBottom + heightBottomRight) / 8 - height;
 
         return strongSmoothing ? height + mean : height + mean / 2;
+    }
+
+    // from https://forum.unity.com/threads/terrain-layers-api-can-you-tell-me-the-starting-point.606019/#post-4966541
+    /// <summary>
+    /// Adds the given texture as an extra layer to the given terrain.
+    /// </summary>
+    /// <param name="terrainData"><see cref="TerrainData"/> to modify the texture of.</param>
+    /// <param name="texture">Texture to be used.</param>
+    /// <param name="size">Size of the <see cref="Terrain"/> in meters.</param>
+    private void SetTerrainTexture(TerrainData terrainData, Texture2D texture, float size, string name)
+    {
+        var newTextureLayer = new TerrainLayer();
+        newTextureLayer.diffuseTexture = texture;
+        newTextureLayer.tileOffset = Vector2.zero;
+        newTextureLayer.tileSize = Vector2.one * size;
+
+        AddTerrainLayer(terrainData, newTextureLayer, name);
+    }
+
+    /// <summary>
+    /// Adds new <see cref="TerrainLayer"/> to the given <see cref="TerrainData"/> object.
+    /// </summary>
+    /// <param name="terrainData"><see cref="TerrainData"/> to add layer to.</param>
+    /// <param name="inputLayer"><see cref="TerrainLayer"/> to add.</param>
+    private void AddTerrainLayer(TerrainData terrainData, TerrainLayer inputLayer, string layerName)
+    {
+        if (inputLayer == null)
+            return;
+
+        var layers = terrainData.terrainLayers;
+        for (var idx = 0; idx < layers.Length; ++idx)
+        {
+            if (layers[idx] == inputLayer)
+                return;
+        }
+
+        int newIndex = layers.Length;
+        var newarray = new TerrainLayer[newIndex + 1];
+        System.Array.Copy(layers, 0, newarray, 0, newIndex);
+        newarray[newIndex] = inputLayer;
+        CustomTerrainLayerIndices[layerName] = newIndex;
+
+        terrainData.terrainLayers = newarray;
+    }
+
+    private void RemoveTerrainLayer(TerrainData terrainData, string layerName)
+    {
+        if (CustomTerrainLayerIndices.TryGetValue(layerName, out int layernum))
+        {
+            var oldLayers = terrainData.terrainLayers;
+            var newLayers = new TerrainLayer[oldLayers.Length - 1];
+            for (int i = 0; i < oldLayers.Length; i++)
+            {
+                if (i == layernum) continue;
+                newLayers[i] = oldLayers[i];
+            }
+            terrainData.terrainLayers = newLayers;
+            CustomTerrainLayerIndices.Remove(layerName);
+        }
     }
 }
