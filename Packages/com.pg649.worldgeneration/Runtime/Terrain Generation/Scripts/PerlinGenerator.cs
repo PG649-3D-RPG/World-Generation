@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 // using Unity.AI.Navigation;
 using Random = UnityEngine.Random;
@@ -66,6 +62,9 @@ public class PerlinGenerator : MonoBehaviour
     public int smoothRadius = 4;
     public int smoothPasses = 1;
 
+    private int BorderPadding = 10;
+
+    public bool ShowBorderZone = true;
     // public bool GenerateObstacles = true;
     // [SerializeField] public GameObject ObstaclePrefab;
     // public float ObstacleThreshold = 0.9f;
@@ -86,7 +85,7 @@ public class PerlinGenerator : MonoBehaviour
     //     };
     // }
 
-    public void Start()
+    public void BuildTerrain()
     {
         // OffsetX = Random.Range(0f, 9999f);
         // OffsetY = Random.Range(0f, 9999f);
@@ -167,6 +166,7 @@ public class PerlinGenerator : MonoBehaviour
         Vector2Int cornerBottomRight = new(1, 1);
         // coordinates where borders are located
         bool[,] bordersApplied = new bool[TerrainSize, TerrainSize];
+        bool[,] borderZone = new bool[TerrainSize, TerrainSize]; //TODO add method to show the borderzone
 
         // left border
         int randBorderSize = Random.Range(MinBorderSize, MaxBorderSize + 1);
@@ -180,6 +180,11 @@ public class PerlinGenerator : MonoBehaviour
             {
                 heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
                 bordersApplied[x, y] = true;
+                // populate border zone
+                for (int i = 0; i < BorderPadding; i++)
+                {
+                    borderZone[x + i, y] = true;
+                }
             }
         }
         // right border
@@ -194,6 +199,11 @@ public class PerlinGenerator : MonoBehaviour
             {
                 heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
                 bordersApplied[x, y] = true;
+                // populate border zone
+                for (int i = 0; i < BorderPadding; i++)
+                {
+                    borderZone[x - i, y] = true;
+                }
             }
         }
         //top border
@@ -213,6 +223,11 @@ public class PerlinGenerator : MonoBehaviour
                     bordersApplied[x, y] = true;
                     if (!determinedCornerTopLeft) { cornerTopLeft = new(x, randBorderSize); determinedCornerTopLeft = true; }
                     if (determinedCornerTopLeft) cornerTopRight = new(x, y);
+                    // populate border zone
+                    for (int i = 0; i < BorderPadding; i++)
+                    {
+                        borderZone[x, y + i] = true;
+                    }
                 }
             }
         }
@@ -233,6 +248,10 @@ public class PerlinGenerator : MonoBehaviour
                     bordersApplied[x, y] = true;
                     if (!determinedCornerBottomLeft) { cornerBottomLeft = new(x, y); determinedCornerBottomLeft = true; }
                     if (determinedCornerBottomLeft) cornerBottomRight = new(x, y);
+                    for (int i = 0; i < BorderPadding; i++)
+                    {
+                        borderZone[x, y - i] = true;
+                    }
                 }
             }
         }
