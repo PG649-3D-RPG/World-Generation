@@ -167,6 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4ef10453e0415a4bbca7614bc4ecfb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seed: 42
   width: 256
   depth: 256
   partitionMode: 0
@@ -179,6 +180,8 @@ MonoBehaviour:
   roomPlacementProbability: 50
   minCorridorWidth: 1
   maxCorridorWidth: 1
+  minCorridorHeight: 2
+  maxCorridorHeight: 3
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
