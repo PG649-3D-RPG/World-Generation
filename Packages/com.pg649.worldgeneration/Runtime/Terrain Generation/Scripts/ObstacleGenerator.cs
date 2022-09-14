@@ -62,6 +62,7 @@ public class ObstacleGenerator
     {
         for (int n = 0; n < 5; n++)
         {
+            //TODO utilize freeSpace for position calculation
             var obstaclePosX = Random.Range(BorderGenerator.MaxBorderSize + 1, TerrainSize - BorderGenerator.MaxBorderSize - ObstacleWidth);
             var obstaclePosY = Random.Range(BorderGenerator.MaxBorderSize + 1, TerrainSize - BorderGenerator.MaxBorderSize - ObstacleHeight);
             // check if left/top position is outside of Border+Padding and bottom/right is outside of Border+Padding

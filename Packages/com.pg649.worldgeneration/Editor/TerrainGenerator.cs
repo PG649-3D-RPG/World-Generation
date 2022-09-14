@@ -5,12 +5,13 @@ using UnityEngine;
 public class TerrainGenerator : Editor
 {
     private ZONES? activeZone = null;
-
+    private EnvironmentGenerator gen;
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
 
-        EnvironmentGenerator gen = (EnvironmentGenerator)target;
+        gen = (EnvironmentGenerator)target;
+
         if (GUILayout.Button("Build Terrain"))
         {
             if (activeZone.HasValue)
@@ -21,48 +22,47 @@ public class TerrainGenerator : Editor
             gen.Build();
         }
 
+        if (GUILayout.Button("Show/Hide Free space"))
+        {
+            Show(ZONES.FREE);
+        }
+
+        if (GUILayout.Button("Show/Hide Used space"))
+        {
+            Show(ZONES.USED);
+        }
+
         if (GUILayout.Button("Show/Hide Border Zone"))
         {
-            if (activeZone.HasValue && activeZone.Value == ZONES.BORDERS)
-            {
-                gen.RemoveZone(ZONES.BORDERS);
-                activeZone = null;
-            }
-            else if (activeZone.HasValue)
-            {
-                // remove current zone
-                gen.RemoveZone(activeZone.Value);
-                // show border zone
-                gen.ShowZone(ZONES.BORDERS);
-                activeZone = ZONES.BORDERS;
-            }
-            else
-            {
-                gen.ShowZone(ZONES.BORDERS);
-                activeZone = ZONES.BORDERS;
-            }
+            Show(ZONES.BORDERS);
         }
 
         if (GUILayout.Button("Show/Hide Obstacle Zone"))
         {
-            if (activeZone.HasValue && activeZone.Value == ZONES.OBSTACLES)
-            {
-                gen.RemoveZone(ZONES.OBSTACLES);
-                activeZone = null;
-            }
-            else if (activeZone.HasValue)
-            {
-                // remove current zone
-                gen.RemoveZone(activeZone.Value);
-                // show obstacle zone
-                gen.ShowZone(ZONES.OBSTACLES);
-                activeZone = ZONES.OBSTACLES;
-            }
-            else
-            {
-                gen.ShowZone(ZONES.OBSTACLES);
-                activeZone = ZONES.OBSTACLES;
-            }
+            Show(ZONES.OBSTACLES);
+        }
+
+    }
+
+    private void Show(ZONES zone)
+    {
+        if (activeZone.HasValue && activeZone.Value == zone)
+        {
+            gen.RemoveZone(zone);
+            activeZone = null;
+        }
+        else if (activeZone.HasValue)
+        {
+            // remove current zone
+            gen.RemoveZone(activeZone.Value);
+            // show selected zone
+            gen.ShowZone(zone);
+            activeZone = zone;
+        }
+        else
+        {
+            gen.ShowZone(zone);
+            activeZone = zone;
         }
     }
 }

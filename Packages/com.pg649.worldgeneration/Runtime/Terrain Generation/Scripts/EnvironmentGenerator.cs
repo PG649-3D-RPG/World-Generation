@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
+// using Unity.AI.Navigation;
 
 public class EnvironmentGenerator : MonoBehaviour
 {
@@ -9,8 +10,12 @@ public class EnvironmentGenerator : MonoBehaviour
     private int OffsetX { get; set; } = 0;
     private int OffsetY { get; set; } = 0;
 
-    private bool[,] BorderZone;
-    private bool[,] ObstacleZone;
+    public bool[,] BorderZone;
+    public bool[,] ObstacleZone;
+
+    private bool[,] UsedSpace;
+    private bool[,] FreeSpace;
+
     private readonly Dictionary<string, int> CustomTerrainLayerIndices = new();
 
     [Header("General settings")]
@@ -64,12 +69,20 @@ public class EnvironmentGenerator : MonoBehaviour
         switch (zone)
         {
             case ZONES.BORDERS:
-                var borderLayer = ZoneManager.ShowZone(TerrainSize, BorderZone, Color.red);
+                var borderLayer = ZoneManager.ShowZone(TerrainSize, BorderZone, Color.yellow);
                 AddTerrainLayer(Terrain.terrainData, borderLayer, "border");
                 break;
             case ZONES.OBSTACLES:
                 var obstacleLayer = ZoneManager.ShowZone(TerrainSize, ObstacleZone, Color.green);
                 AddTerrainLayer(Terrain.terrainData, obstacleLayer, "obstacles");
+                break;
+            case ZONES.FREE:
+                var freeLayer = ZoneManager.ShowZone(TerrainSize, FreeSpace, Color.white);
+                AddTerrainLayer(Terrain.terrainData, freeLayer, "free");
+                break;
+            case ZONES.USED:
+                var usedLayer = ZoneManager.ShowZone(TerrainSize, UsedSpace, Color.red);
+                AddTerrainLayer(Terrain.terrainData, usedLayer, "used");
                 break;
             default:
                 break;
@@ -84,6 +97,12 @@ public class EnvironmentGenerator : MonoBehaviour
                 break;
             case ZONES.OBSTACLES:
                 RemoveTerrainLayer(Terrain.terrainData, "obstacles");
+                break;
+            case ZONES.FREE:
+                RemoveTerrainLayer(Terrain.terrainData, "free");
+                break;
+            case ZONES.USED:
+                RemoveTerrainLayer(Terrain.terrainData, "used");
                 break;
             default:
                 break;
@@ -100,7 +119,7 @@ public class EnvironmentGenerator : MonoBehaviour
         return Terrain.SampleHeight(position);
     }
 
-    public void RegenerateTerrain()
+    private void RegenerateTerrain()
     {
         // clear all runtime containers
         foreach (var layerName in CustomTerrainLayerIndices.Keys)
@@ -108,6 +127,12 @@ public class EnvironmentGenerator : MonoBehaviour
             RemoveTerrainLayer(Terrain.terrainData, layerName);
         }
         CustomTerrainLayerIndices.Clear();
+
+        BorderZone = new bool[TerrainSize, TerrainSize];
+        ObstacleZone = new bool[TerrainSize, TerrainSize];
+
+        FreeSpace = new bool[TerrainSize, TerrainSize];
+        UsedSpace = new bool[TerrainSize, TerrainSize];
 
         // generate new basic terrain
         Terrain.terrainData.heightmapResolution = TerrainSize + 1;
@@ -135,8 +160,22 @@ public class EnvironmentGenerator : MonoBehaviour
             Terrain.terrainData = obstacleGenerator.GenerateObstacles(Terrain.terrainData);
             ObstacleZone = obstacleGenerator.GetObstacleZone();
         }
-
         Terrain.Flush();
+
+        UpdateFreeAndUsedSpace();
+    }
+
+    public void UpdateFreeAndUsedSpace()
+    {
+        // naively calculate used and unused spaces
+        for (int x = 0; x < TerrainSize; x++)
+        {
+            for (int y = 0; y < TerrainSize; y++)
+            {
+                FreeSpace[x, y] = !(BorderZone[x, y] || ObstacleZone[x, y]);
+                UsedSpace[x, y] = BorderZone[x, y] || ObstacleZone[x, y];
+            }
+        }
     }
 
     /// <summary>
