@@ -152,13 +152,14 @@ public class PerlinGenerator : MonoBehaviour
 
         // Generate terrain data
         // if (!GenerateHeights) return terrainData; // Do not generate terrain with heights
-        //TODO apparently: The heights array is indexed as [y,x]. https://docs.unity3d.com/ScriptReference/TerrainData.SetHeights.html
+        // !!!IMPORTANT!!! The heights array is indexed as [y,x]. https://docs.unity3d.com/ScriptReference/TerrainData.SetHeights.html
         var heights = new float[TerrainSize, TerrainSize];
+
         for (var x = 0; x < TerrainSize; x++)
         {
             for (var y = 0; y < TerrainSize; y++)
             {
-                heights[x, y] = Mathf.PerlinNoise((float)x / TerrainSize * Scale + OffsetX, (float)y / TerrainSize * Scale + OffsetY);
+                heights[y, x] = Mathf.PerlinNoise((float)x / TerrainSize * Scale + OffsetX, (float)y / TerrainSize * Scale + OffsetY);
             }
         }
 
@@ -191,7 +192,7 @@ public class PerlinGenerator : MonoBehaviour
             borderLeft[y] = randBorderSize;
             for (var x = 0; x < randBorderSize; x++)
             {
-                heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
+                heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
                 bordersApplied[x, y] = true;
                 // populate border zone
                 for (int i = 0; i < BorderPadding; i++)
@@ -210,7 +211,7 @@ public class PerlinGenerator : MonoBehaviour
             borderRight[y] = TerrainSize - randBorderSize;
             for (var x = TerrainSize - randBorderSize - 1; x < TerrainSize; x++)
             {
-                heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
+                heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
                 bordersApplied[x, y] = true;
                 // populate border zone
                 for (int i = 0; i < BorderPadding; i++)
@@ -232,7 +233,7 @@ public class PerlinGenerator : MonoBehaviour
             {
                 if (!bordersApplied[x, y])
                 {
-                    heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
+                    heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
                     bordersApplied[x, y] = true;
                     if (!determinedCornerTopLeft) { cornerTopLeft = new(x, randBorderSize); determinedCornerTopLeft = true; }
                     if (determinedCornerTopLeft) cornerTopRight = new(x, y);
@@ -257,7 +258,7 @@ public class PerlinGenerator : MonoBehaviour
             {
                 if (!bordersApplied[x, y])
                 {
-                    heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
+                    heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
                     bordersApplied[x, y] = true;
                     if (!determinedCornerBottomLeft) { cornerBottomLeft = new(x, y); determinedCornerBottomLeft = true; }
                     if (determinedCornerBottomLeft) cornerBottomRight = new(x, y);
@@ -278,106 +279,61 @@ public class PerlinGenerator : MonoBehaviour
                 for (int y = cornerTopLeft.y; y < cornerBottomLeft.y; y++)
                 {
                     Vector2Int pos = new(borderLeft[y], y);
-                    heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                    heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
                     // also smooth neighbours in radius
                     for (int i = 1; i <= smoothRadius; i++)
                     {
                         pos = new(borderLeft[y] - i, y);
-                        if (pos.x > 0) heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                        if (pos.x > 0) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
                         pos = new(borderLeft[y] + i, y);
-                        if (pos.x < TerrainSize - 1) heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                        if (pos.x < TerrainSize - 1) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
                     }
                 }
                 //right border
                 for (int y = cornerTopRight.y; y < cornerBottomRight.y; y++)
                 {
                     Vector2Int pos = new(borderRight[y], y);
-                    heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                    heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
 
                     for (int i = 1; i <= smoothRadius; i++)
                     {
                         pos = new(borderRight[y] - i, y);
-                        if (pos.x > 0) heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                        if (pos.x > 0) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
                         pos = new(borderRight[y] + i, y);
-                        if (pos.x < TerrainSize - 1) heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                        if (pos.x < TerrainSize - 1) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
                     }
                 }
                 //top border
                 for (int x = cornerTopLeft.x; x < cornerTopRight.x; x++)
                 {
                     Vector2Int pos = new(x, borderTop[x]);
-                    heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                    heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
 
                     for (int i = 1; i <= smoothRadius; i++)
                     {
                         pos = new(x, borderTop[x] - i);
-                        if (pos.y > 0) heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                        if (pos.y > 0) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
                         pos = new(x, borderTop[x] + i);
-                        if (pos.y < TerrainSize - 1) heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                        if (pos.y < TerrainSize - 1) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
                     }
                 }
                 //bottom border
                 for (int x = cornerBottomLeft.x; x < cornerBottomRight.x; x++)
                 {
                     Vector2Int pos = new(x, borderBottom[x]);
-                    heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                    heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
 
                     for (int i = 1; i <= smoothRadius; i++)
                     {
                         pos = new(x, borderBottom[x] - i);
-                        if (pos.y > 0) heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                        if (pos.y > 0) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
                         pos = new(x, borderBottom[x] + i);
-                        if (pos.y < TerrainSize - 1) heights[pos.x, pos.y] = GetSmoothedValue(pos, heights, strongerSmoothing);
+                        if (pos.y < TerrainSize - 1) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, strongerSmoothing);
                     }
                 }
             }
         }
 
-        // for (var x = 0; x < BorderSize; x++)
-        // {
-        //     for (var y = 0; y < TerrainSize; y++)
-        //     {
-        //         heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
-        //     }
-        // }
-        // for (var x = TerrainSize - BorderSize; x < TerrainSize; x++)
-        // {
-        //     for (var y = 0; y < TerrainSize; y++)
-        //     {
-        //         heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
-        //     }
-        // }
-        // for (var y = 0; y < BorderSize; y++)
-        // {
-        //     for (var x = 0; x < TerrainSize; x++)
-        //     {
-        //         heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
-        //     }
-        // }
-        // for (var y = TerrainSize - BorderSize; y < TerrainSize; y++)
-        // {
-        //     for (var x = 0; x < TerrainSize; x++)
-        //     {
-        //         heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
-        //     }
-        // }
-
-
-        // Generate obstacles
-        // if (!GenerateObstacles) return terrainData; // Do not generate obstacles
-
-
-
-        // for (var x = 11; x < TerrainSize - 10 - ObstacleSize; x++)
-        // {
-        //     for (var y = 1; y < TerrainSize - 10 - ObstacleSize; y++)
-        //     {
-        //         for (var o_x = 0; o_x < ObstacleSize;)
-        //         // if (!(Mathf.PerlinNoise((x + OffsetX) / TerrainSize * ScaleObstacle, (y + OffsetY) / TerrainSize * ScaleObstacle + OffsetY) > ObstacleThreshold)) continue;
-        //         // var newObstacle = GameObject.Instantiate(ObstaclePrefab, Vector3.zero, Quaternion.identity, ObstaclesContainer.transform);
-        //         // newObstacle.transform.localPosition = new Vector3(x, terrainData.GetHeight(x, y) + 2f, y);
-        //     }
-        // }
 #nullable enable
         Vector2Int? GenerateObstaclePosition()
         {
@@ -397,6 +353,7 @@ public class PerlinGenerator : MonoBehaviour
             return null; // could not find a suitable position
         }
 #nullable disable
+
         //TODO Random edges for obstacles as well
         for (int i = 0; i < NumberOfObstacles; i++)
         {
@@ -404,35 +361,18 @@ public class PerlinGenerator : MonoBehaviour
             if (!obstaclePositions.HasValue) continue; // if no suitable position could be found
             var obstaclePosX = obstaclePositions.Value.x;
             var obstaclePosY = obstaclePositions.Value.y;
+
+            // create obstacle
             for (int x = obstaclePosX; x < obstaclePosX + ObstacleSize; x++)
             {
                 for (int y = obstaclePosY; y < obstaclePosY + ObstacleSize; y++)
                 {
-                    heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3, (float)y / TerrainSize * Scale * 3);
+                    heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3, (float)y / TerrainSize * Scale * 3);
                     ObstacleZone[x, y] = true;
-                    // Debug.Log(new Vector2Int(x, y));
-                    // Debug.Log(heights[x, y]);
-                    // Debug.Log(ObstacleZone[x, y]);
                 }
             }
         }
 
-        heights[117, 117] = 1;
-        ObstacleZone[117, 117] = true;
-        heights[42, 42] = 1;
-        ObstacleZone[42, 42] = true;
-
-        heights[100, 100] = 1;
-        heights[100, 101] = 1;
-        heights[101, 100] = 1;
-        heights[101, 101] = 1;
-        ObstacleZone[100, 100] = true;
-        ObstacleZone[100, 101] = true;
-        ObstacleZone[101, 100] = true;
-        ObstacleZone[101, 101] = true;
-
-        heights[240, 240] = 1;
-        ObstacleZone[240, 240] = true;
 
         terrainData.SetHeights(0, 0, heights);
         return terrainData;
@@ -465,11 +405,7 @@ public class PerlinGenerator : MonoBehaviour
         {
             for (int y = 0; y < texture.height; y++)
             {
-                //TODO fix: Unity texture and terrain coords are not the same
-                if (ObstacleZone[x, y])
-                {
-                    texture.SetPixel(x, y, Color.green);
-                }
+                texture.SetPixel(x, y, ObstacleZone[x, y] ? Color.green : Color.clear);
             }
         }
         texture.Apply();
@@ -484,17 +420,17 @@ public class PerlinGenerator : MonoBehaviour
     private float GetSmoothedValue(Vector2Int pos, float[,] heights, bool strongSmoothing)
     {
         // calculate neighbours -> pos > 0 this works
-        var heightTopLeft = heights[pos.x - 1, pos.y - 1];
-        var heightTop = heights[pos.x, pos.y - 1];
-        var heightTopRight = heights[pos.x + 1, pos.y - 1];
+        var heightTopLeft = heights[pos.y - 1, pos.x - 1];
+        var heightTop = heights[pos.y - 1, pos.x];
+        var heightTopRight = heights[pos.y - 1, pos.x + 1];
 
-        var heightLeft = heights[pos.x - 1, pos.y];
-        var height = heights[pos.x, pos.y];
-        var heightRight = heights[pos.x + 1, pos.y];
+        var heightLeft = heights[pos.y, pos.x - 1];
+        var height = heights[pos.y, pos.x];
+        var heightRight = heights[pos.y, pos.x + 1];
 
-        var heightBottomLeft = heights[pos.x - 1, pos.y + 1];
-        var heightBottom = heights[pos.x, pos.y + 1];
-        var heightBottomRight = heights[pos.x + 1, pos.y + 1];
+        var heightBottomLeft = heights[pos.y + 1, pos.x - 1];
+        var heightBottom = heights[pos.y + 1, pos.x];
+        var heightBottomRight = heights[pos.y + 1, pos.x + 1];
 
         float mean = (heightTopLeft + heightTop + heightTopRight + heightLeft + heightRight + heightBottomLeft + heightBottom + heightBottomRight) / 8 - height;
 
@@ -512,7 +448,7 @@ public class PerlinGenerator : MonoBehaviour
     {
         var newTextureLayer = new TerrainLayer();
         newTextureLayer.diffuseTexture = texture;
-        // newTextureLayer.tileOffset = Vector2.zero;
+        newTextureLayer.tileOffset = Vector2.zero;
         newTextureLayer.tileSize = Vector2.one * size;
 
         AddTerrainLayer(terrainData, newTextureLayer, name);
