@@ -152,7 +152,7 @@ public class PerlinGenerator : MonoBehaviour
 
         // Generate terrain data
         // if (!GenerateHeights) return terrainData; // Do not generate terrain with heights
-
+        //TODO apparently: The heights array is indexed as [y,x]. https://docs.unity3d.com/ScriptReference/TerrainData.SetHeights.html
         var heights = new float[TerrainSize, TerrainSize];
         for (var x = 0; x < TerrainSize; x++)
         {
@@ -410,9 +410,29 @@ public class PerlinGenerator : MonoBehaviour
                 {
                     heights[x, y] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3, (float)y / TerrainSize * Scale * 3);
                     ObstacleZone[x, y] = true;
+                    // Debug.Log(new Vector2Int(x, y));
+                    // Debug.Log(heights[x, y]);
+                    // Debug.Log(ObstacleZone[x, y]);
                 }
             }
         }
+
+        heights[117, 117] = 1;
+        ObstacleZone[117, 117] = true;
+        heights[42, 42] = 1;
+        ObstacleZone[42, 42] = true;
+
+        heights[100, 100] = 1;
+        heights[100, 101] = 1;
+        heights[101, 100] = 1;
+        heights[101, 101] = 1;
+        ObstacleZone[100, 100] = true;
+        ObstacleZone[100, 101] = true;
+        ObstacleZone[101, 100] = true;
+        ObstacleZone[101, 101] = true;
+
+        heights[240, 240] = 1;
+        ObstacleZone[240, 240] = true;
 
         terrainData.SetHeights(0, 0, heights);
         return terrainData;
@@ -441,13 +461,15 @@ public class PerlinGenerator : MonoBehaviour
     public void ShowObstacleZone()
     {
         Texture2D texture = new(TerrainSize, TerrainSize);
-        for (int y = 0; y < texture.height; y++)
+        for (int x = 0; x < texture.width; x++)
         {
-            for (int x = 0; x < texture.width; x++)
+            for (int y = 0; y < texture.height; y++)
             {
                 //TODO fix: Unity texture and terrain coords are not the same
-                Color color = ObstacleZone[x, y] ? Color.green : Color.clear;
-                texture.SetPixel(x, y, color);
+                if (ObstacleZone[x, y])
+                {
+                    texture.SetPixel(x, y, Color.green);
+                }
             }
         }
         texture.Apply();
@@ -490,7 +512,7 @@ public class PerlinGenerator : MonoBehaviour
     {
         var newTextureLayer = new TerrainLayer();
         newTextureLayer.diffuseTexture = texture;
-        newTextureLayer.tileOffset = Vector2.zero;
+        // newTextureLayer.tileOffset = Vector2.zero;
         newTextureLayer.tileSize = Vector2.one * size;
 
         AddTerrainLayer(terrainData, newTextureLayer, name);
