@@ -11,6 +11,7 @@ public class Generate2DDungeon : MonoBehaviour
     public SPTreeT.PartitionMode partitionMode;
     public int minPartitionWidth = 16;
     public int minPartitionDepth = 16;
+    public int skipChildren = 0;
     [Header("Room Placement")]
     public int leftRightMinMargin = 1;
     public int leftRightMaxMargin = 5;
@@ -31,13 +32,13 @@ public class Generate2DDungeon : MonoBehaviour
         System.Random rand = new System.Random(seed);
         switch(partitionMode){
             case SPTreeT.PartitionMode.KDTreeRandom:
-                spTree = new SPTreeT(size, SPTreeT.KDTreeRandom(minSize), rand : rand);
+                spTree = new SPTreeT(size, SPTreeT.KDTreeRandom(minSize), rand : rand, skipChildren : skipChildren);
                 break;
             case SPTreeT.PartitionMode.QuadTreeUniform:
-                spTree = new SPTreeT(size, SPTreeT.QuadTreeUniform(), SPTreeT.StopMinSize(minSize), rand : rand);
+                spTree = new SPTreeT(size, SPTreeT.QuadTreeUniform(), SPTreeT.StopMinSize(minSize), rand : rand, skipChildren : skipChildren);
                 break;
             default:
-                spTree = new SPTreeT(size, SPTreeT.KDTreeRandom(minSize), rand : rand);
+                spTree = new SPTreeT(size, SPTreeT.KDTreeRandom(minSize), rand : rand, skipChildren : skipChildren);
                 break;
         }
         DungeonTreeT dTree = new DungeonTreeT(spTree);

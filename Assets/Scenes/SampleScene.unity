@@ -173,6 +173,7 @@ MonoBehaviour:
   partitionMode: 0
   minPartitionWidth: 16
   minPartitionDepth: 16
+  skipChildren: 0
   leftRightMinMargin: 1
   leftRightMaxMargin: 5
   frontBackMinMargin: 1

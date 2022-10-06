@@ -99,7 +99,8 @@ public static GameObject Quad(float width, float height, Plane plane = Plane.XZ)
                 vertices.Add(path[i+1] + hw*Vector3.forward - (m*hw*dir));
                 vertices.Add(path[i+1] + hw*Vector3.back - (m*hw*dir));
                 vcount += 4;
-                triangles.AddRange(new int[]{vcount-3, vcount-2, vcount-1, vcount, vcount -1, vcount-2});
+                if(dir == Vector3.left) triangles.AddRange(new int[]{vcount-3, vcount-2, vcount-1, vcount, vcount -1, vcount-2});
+                else triangles.AddRange(new int[]{vcount-2, vcount-3, vcount-1, vcount, vcount -2, vcount-1});
             }
             else if(dir == Vector3.forward || dir == Vector3.back){
                 vertices.Add(path[i] + hw*Vector3.left - (Math.Min(i,1)*(hw*dir)));
@@ -107,12 +108,13 @@ public static GameObject Quad(float width, float height, Plane plane = Plane.XZ)
                 vertices.Add(path[i+1] + hw*Vector3.left - (m*hw*dir));
                 vertices.Add(path[i+1] + hw*Vector3.right - (m*hw*dir));
                 vcount += 4;
-                triangles.AddRange(new int[]{vcount-1, vcount-2, vcount-3, vcount-2, vcount -1, vcount});
+                if(dir == Vector3.forward) triangles.AddRange(new int[]{vcount-1, vcount-2, vcount-3, vcount-2, vcount -1, vcount});
+                else triangles.AddRange(new int[]{vcount-2, vcount-1, vcount-3, vcount-1, vcount -2, vcount});
             }
             
         }
         Vector3[] normals = new Vector3[vertices.Count];
-        for(int i = 0; i < normals.Length; i++) normals[i] = Vector3.up;
+        for(int i = 0; i < normals.Length; i++) normals[i] = Vector3.down;
         Vector3[] vertices_a = vertices.ToArray();
         //Vector2[] uvs = new Vector2[vertices_a.Length];
         //for (int i = 0; i < uvs.Length; i++) uvs[i] = new Vector2(vertices_a[i].x, vertices_a[i].z);

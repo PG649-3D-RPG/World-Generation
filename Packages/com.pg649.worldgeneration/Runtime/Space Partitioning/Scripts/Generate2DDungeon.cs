@@ -7,9 +7,11 @@ public class SPTest : MonoBehaviour
     public int width = 256;
     public int depth = 256;
     public SPTreeT.PartitionMode partitionMode;
+    public int skipChildren = 0;
     public int minWidth = 2;
     public int minDepth = 2;
     public int roomPlacementProbability = 100;
+    
 
     void Start()
     {

@@ -50,17 +50,28 @@ public class SPTreeT : Tree<SPTreeNode>{
 
 
     public SPTreeT(IEnumerable<int> size, Random rand = null) : base(new SPTreeNode(size.ToArray(), rand : rand)){}
-    public SPTreeT(IEnumerable<int> size, Action<SPTreeT> fSplit, Func<SPTreeT, bool> fStop = null, Random rand = null) : this(size, rand : rand){
+    public SPTreeT(IEnumerable<int> size, Action<SPTreeT> fSplit, Func<SPTreeT, bool> fStop = null, Random rand = null, int skipChildren = 0) : this(size, rand : rand){
         fStop = fStop ?? (x => false);
-        Split(fSplit, fStop, recursive : true);
+        Split(fSplit, fStop, recursive : true, skipChildren : skipChildren);
     }
 
 
-    public void Split(Action<SPTreeT> fSplit, Func<SPTreeT, bool> fStop, bool recursive = false){
+    public void Split(Action<SPTreeT> fSplit, Func<SPTreeT, bool> fStop, bool recursive = false, int skipChildren = 0){
         if(!IsLeaf()) throw new Exception();
         else if(!fStop(this)){
             fSplit(this);
-            if(recursive) foreach(SPTreeT child in children) child.Split(fSplit,fStop, recursive : recursive);
+            if(children.Count > skipChildren){
+            List<int> l = new List<int>();
+            for(int k = 0; k < children.Count; k++) l.Add(k);
+            for(int k = 0; k < skipChildren; k++){
+                l.RemoveAt(node.Rand.Next(0,l.Count));
+            }
+            if(recursive){
+                for(int i = 0; i < children.Count; i++){
+                    if(l.Contains(i)) ((SPTreeT)children[i]).Split(fSplit,fStop, recursive : recursive, skipChildren : skipChildren);
+                }
+            }
+            }
         }
     }
 

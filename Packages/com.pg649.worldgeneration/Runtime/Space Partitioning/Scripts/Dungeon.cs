@@ -294,7 +294,9 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                 case 2:
                     if(node.Size[0] == children[0].Node.Size[0]){
                         node.RoomsNorth.AddRange(children[1].Node.RoomsNorth);
+                        if(children[1].Node.RoomsNorth.Count == 0) node.RoomsNorth.AddRange(children[0].Node.RoomsNorth);
                         node.RoomsSouth.AddRange(children[0].Node.RoomsSouth);
+                        if(children[0].Node.RoomsSouth.Count == 0) node.RoomsSouth.AddRange(children[1].Node.RoomsSouth);
                         node.RoomsEast.AddRange(children[0].Node.RoomsEast);
                         node.RoomsEast.AddRange(children[1].Node.RoomsEast);
                         node.RoomsWest.AddRange(children[0].Node.RoomsWest);
@@ -306,7 +308,9 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                         node.RoomsSouth.AddRange(children[0].Node.RoomsSouth);
                         node.RoomsSouth.AddRange(children[1].Node.RoomsSouth);
                         node.RoomsEast.AddRange(children[1].Node.RoomsEast);
+                        if(children[1].Node.RoomsEast.Count == 0) node.RoomsEast.AddRange(children[0].Node.RoomsEast);
                         node.RoomsWest.AddRange(children[0].Node.RoomsWest);
+                        if(children[0].Node.RoomsWest.Count == 0) node.RoomsWest.AddRange(children[1].Node.RoomsWest);
                     }
                     break;
                 case 4:
