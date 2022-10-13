@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 // using Unity.AI.Navigation;
 
-public class EnvironmentGenerator : MonoBehaviour
+public class EnvironmentGenerator
 {
     private Terrain Terrain { get; set; }
     private BorderGenerator BorderGenerator { get; set; }
@@ -18,49 +19,25 @@ public class EnvironmentGenerator : MonoBehaviour
 
     private readonly Dictionary<string, int> CustomTerrainLayerIndices = new();
 
-    [Header("General settings")]
-    [Space(10)]
-    public bool UseRandomSeed = false;
-    public int RandomSeed = 42;
-
-
-    [Header("Terrain settings")]
-    [Space(10)]
-    public bool GenerateHeights = true;
-    public float Depth = 10;
-    public float Scale = 2.5f;
-    private readonly int TerrainSize = 256; // must be 2^n
-
-
-    [Header("Border settings")]
-    [Space(10)]
-    public bool GenerateBorders = true;
-    public int MaxBorderSize = 12;
-    public int MinBorderSize = 6;
-    public bool UseSmoothing = true;
-    public bool StrongerSmoothing = false;
-    public int SmoothRadius = 4;
-    public int SmoothPasses = 1;
+    // internal border settings
     private int BorderPadding = 10;
 
-    [Header("Obstacle settings")]
-    [Space(10)]
-    public bool GenerateObstacles = true;
-    public int ObstacleSize = 10;
-    public int NumberOfObstacles = 5;
-    public int ObstaclePadding = 10;
+    private EnvironmentGeneratorSettings settings;
 
-    [Header("Plant settings")]
-    [Space(10)]
-    public bool GeneratePlants = false;
+    bool IsPowerOfTwo(int x) => (x != 0) && ((x & (x - 1)) == 0); // from https://stackoverflow.com/a/600306
+    public EnvironmentGenerator(ref Terrain terrain, EnvironmentGeneratorSettings generatorSettings)
+    {
+        settings = generatorSettings;
+        if (!IsPowerOfTwo(settings.TerrainSize)) throw new ArgumentException("TerrainSize must be a power of 2");
+        Terrain = terrain;
+    }
 
     public void Build()
     {
         // OffsetX = Random.Range(0f, 9999f);
         // OffsetY = Random.Range(0f, 9999f);
-        if (UseRandomSeed) Random.InitState(RandomSeed);
+        if (settings.UseRandomSeed) Random.InitState(settings.RandomSeed);
 
-        Terrain = GetComponent<Terrain>();
         RegenerateTerrain();
     }
 
@@ -69,19 +46,19 @@ public class EnvironmentGenerator : MonoBehaviour
         switch (zone)
         {
             case ZONES.BORDERS:
-                var borderLayer = ZoneManager.ShowZone(TerrainSize, BorderZone, Color.yellow);
+                var borderLayer = ZoneManager.ShowZone(settings.TerrainSize, BorderZone, Color.yellow);
                 AddTerrainLayer(Terrain.terrainData, borderLayer, "border");
                 break;
             case ZONES.OBSTACLES:
-                var obstacleLayer = ZoneManager.ShowZone(TerrainSize, ObstacleZone, Color.green);
+                var obstacleLayer = ZoneManager.ShowZone(settings.TerrainSize, ObstacleZone, Color.green);
                 AddTerrainLayer(Terrain.terrainData, obstacleLayer, "obstacles");
                 break;
             case ZONES.FREE:
-                var freeLayer = ZoneManager.ShowZone(TerrainSize, FreeSpace, Color.white);
+                var freeLayer = ZoneManager.ShowZone(settings.TerrainSize, FreeSpace, Color.white);
                 AddTerrainLayer(Terrain.terrainData, freeLayer, "free");
                 break;
             case ZONES.USED:
-                var usedLayer = ZoneManager.ShowZone(TerrainSize, UsedSpace, Color.red);
+                var usedLayer = ZoneManager.ShowZone(settings.TerrainSize, UsedSpace, Color.red);
                 AddTerrainLayer(Terrain.terrainData, usedLayer, "used");
                 break;
             default:
@@ -128,35 +105,35 @@ public class EnvironmentGenerator : MonoBehaviour
         }
         CustomTerrainLayerIndices.Clear();
 
-        BorderZone = new bool[TerrainSize, TerrainSize];
-        ObstacleZone = new bool[TerrainSize, TerrainSize];
+        BorderZone = new bool[settings.TerrainSize, settings.TerrainSize];
+        ObstacleZone = new bool[settings.TerrainSize, settings.TerrainSize];
 
-        FreeSpace = new bool[TerrainSize, TerrainSize];
-        UsedSpace = new bool[TerrainSize, TerrainSize];
+        FreeSpace = new bool[settings.TerrainSize, settings.TerrainSize];
+        UsedSpace = new bool[settings.TerrainSize, settings.TerrainSize];
 
         // generate new basic terrain
-        Terrain.terrainData.heightmapResolution = TerrainSize + 1;
-        Terrain.terrainData.size = new Vector3(TerrainSize, Depth, TerrainSize);
-        var heights = new float[TerrainSize, TerrainSize];
+        Terrain.terrainData.heightmapResolution = settings.TerrainSize + 1;
+        Terrain.terrainData.size = new Vector3(settings.TerrainSize, settings.Depth, settings.TerrainSize);
+        var heights = new float[settings.TerrainSize, settings.TerrainSize];
         Terrain.terrainData.SetHeights(0, 0, heights);
 
         // create necessary new Generators
-        BorderGenerator = new BorderGenerator(TerrainSize, Scale, OffsetX, OffsetY, MinBorderSize, MaxBorderSize, BorderPadding, UseSmoothing, SmoothPasses, SmoothRadius, StrongerSmoothing);
+        BorderGenerator = new BorderGenerator(settings.TerrainSize, settings.Scale, OffsetX, OffsetY, settings.MinBorderSize, settings.MaxBorderSize, BorderPadding, settings.UseSmoothing, settings.SmoothPasses, settings.SmoothRadius, settings.StrongerSmoothing);
 
         // Generate Environment
-        if (GenerateHeights)
+        if (settings.GenerateHeights)
         {
-            PerlinGenerator perlinGenerator = new PerlinGenerator(TerrainSize, Depth, Scale, OffsetX, OffsetY);
+            PerlinGenerator perlinGenerator = new PerlinGenerator(settings.TerrainSize, settings.Depth, settings.Scale, OffsetX, OffsetY);
             Terrain.terrainData = perlinGenerator.GenerateTerrain(Terrain.terrainData);
         }
-        if (GenerateBorders)
+        if (settings.GenerateBorders)
         {
             Terrain.terrainData = BorderGenerator.GenerateBorders(Terrain.terrainData);
             BorderZone = BorderGenerator.GetBorderZone();
         }
-        if (GenerateObstacles)
+        if (settings.GenerateObstacles)
         {
-            ObstacleGenerator obstacleGenerator = new ObstacleGenerator(TerrainSize, Scale, NumberOfObstacles, ObstacleSize, ObstacleSize, ObstaclePadding, BorderGenerator);
+            ObstacleGenerator obstacleGenerator = new ObstacleGenerator(settings.TerrainSize, settings.Scale, settings.NumberOfObstacles, settings.ObstacleSize, settings.ObstacleSize, settings.ObstaclePadding, BorderGenerator);
             Terrain.terrainData = obstacleGenerator.GenerateObstacles(Terrain.terrainData);
             ObstacleZone = obstacleGenerator.GetObstacleZone();
         }
@@ -168,9 +145,9 @@ public class EnvironmentGenerator : MonoBehaviour
     public void UpdateFreeAndUsedSpace()
     {
         // naively calculate used and unused spaces
-        for (int x = 0; x < TerrainSize; x++)
+        for (int x = 0; x < settings.TerrainSize; x++)
         {
-            for (int y = 0; y < TerrainSize; y++)
+            for (int y = 0; y < settings.TerrainSize; y++)
             {
                 FreeSpace[x, y] = !(BorderZone[x, y] || ObstacleZone[x, y]);
                 UsedSpace[x, y] = BorderZone[x, y] || ObstacleZone[x, y];

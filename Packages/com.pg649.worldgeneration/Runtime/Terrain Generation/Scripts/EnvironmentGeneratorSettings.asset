@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0da75400799eb894085ed63807561730, type: 3}
+  m_Name: EnvironmentGeneratorSettings
+  m_EditorClassIdentifier: 
+  UseRandomSeed: 0
+  RandomSeed: 42
+  TerrainSize: 256
+  GenerateHeights: 1
+  Depth: 10
+  Scale: 2.5
+  GenerateBorders: 1
+  MaxBorderSize: 12
+  MinBorderSize: 6
+  UseSmoothing: 1
+  StrongerSmoothing: 0
+  SmoothRadius: 4
+  SmoothPasses: 1
+  GenerateObstacles: 1
+  ObstacleSize: 10
+  NumberOfObstacles: 5
+  ObstaclePadding: 10
+  GeneratePlants: 0

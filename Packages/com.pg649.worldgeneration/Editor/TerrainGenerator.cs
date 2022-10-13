@@ -1,16 +1,16 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(EnvironmentGenerator))]
+[CustomEditor(typeof(EnvironmentGeneratorEditor))]
 public class TerrainGenerator : Editor
 {
     private ZONES? activeZone = null;
-    private EnvironmentGenerator gen;
+    private EnvironmentGeneratorEditor gen;
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
 
-        gen = (EnvironmentGenerator)target;
+        gen = (EnvironmentGeneratorEditor)target;
 
         if (GUILayout.Button("Build Terrain"))
         {
