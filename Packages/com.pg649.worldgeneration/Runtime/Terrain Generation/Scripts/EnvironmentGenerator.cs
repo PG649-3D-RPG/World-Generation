@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -25,7 +24,7 @@ public class EnvironmentGenerator
     public EnvironmentGenerator(ref Terrain terrain, EnvironmentGeneratorSettings generatorSettings)
     {
         settings = generatorSettings;
-        if (!IsPowerOfTwo(settings.TerrainSize)) throw new ArgumentException("TerrainSize must be a power of 2");
+        if (!IsPowerOfTwo(settings.TerrainSize)) throw new System.ArgumentException("TerrainSize must be a power of 2");
         Terrain = terrain;
     }
 
@@ -125,6 +124,15 @@ public class EnvironmentGenerator
         }
         if (settings.GenerateBorders)
         {
+            //bool[,] safeZone = new bool[settings.TerrainSize, settings.TerrainSize];
+            //for (int i = 0; i < settings.MaxBorderSize; i++)
+            //{
+            //    for (int j = 0; j < settings.MaxBorderSize; j++)
+            //    {
+            //        safeZone[100 + i, j] = true;
+            //    }
+            //}
+            //BorderGenerator.SetBorderSafeZone(safeZone);
             Terrain.terrainData = BorderGenerator.GenerateBorders(Terrain.terrainData);
             BorderZone = BorderGenerator.GetBorderZone();
         }

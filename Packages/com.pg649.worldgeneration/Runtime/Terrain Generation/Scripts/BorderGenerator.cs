@@ -32,6 +32,9 @@ public class BorderGenerator
     Vector2Int CornerBottomLeft;
     Vector2Int CornerBottomRight;
 
+    // coordinates where borders are located, also [y,x] indexed
+    private bool[,] BorderSafeZone = null;
+
     public BorderGenerator(int terrainSize, float scale, int offsetX, int offsetY, int minBorderSize, int maxBorderSize, bool useSmoothing, int smoothPasses, int smoothRadius, bool strongerSmoothing)
     {
         TerrainSize = terrainSize;
@@ -64,13 +67,19 @@ public class BorderGenerator
         return BorderZone;
     }
 
+    public void SetBorderSafeZone(bool[,] safeZoneArr)
+    {
+        if (safeZoneArr.GetLength(0) != TerrainSize || safeZoneArr.GetLength(1) != TerrainSize)
+            throw new System.ArgumentOutOfRangeException("BorderSafeZone must be of dimension [TerrainSize,TerrainSize]");
+        BorderSafeZone = safeZoneArr;
+    }
+
     // generate hills around edges
     public TerrainData GenerateBorders(TerrainData terrainData)
     {
         var heights = terrainData.GetHeights(0, 0, TerrainSize, TerrainSize);
 
-        // coordinates where borders are located
-        bool[,] bordersApplied = new bool[TerrainSize, TerrainSize];
+        BorderSafeZone ??= new bool[TerrainSize, TerrainSize];
 
         // left border
         int randBorderSize = Random.Range(MinBorderSize, MaxBorderSize + 1);
@@ -82,12 +91,15 @@ public class BorderGenerator
             BorderLeft[y] = randBorderSize;
             for (var x = 0; x < randBorderSize; x++)
             {
-                heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
-                bordersApplied[x, y] = true;
-                // populate border zone
-                for (int i = 0; i < BorderPadding; i++)
+                if (!BorderSafeZone[x, y])
                 {
-                    BorderZone[x + i, y] = true;
+                    heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
+                    BorderSafeZone[x, y] = true;
+                    // populate border zone
+                    for (int i = 0; i < BorderPadding; i++)
+                    {
+                        BorderZone[x + i, y] = true;
+                    }
                 }
             }
         }
@@ -101,12 +113,15 @@ public class BorderGenerator
             BorderRight[y] = TerrainSize - randBorderSize;
             for (var x = TerrainSize - randBorderSize - 1; x < TerrainSize; x++)
             {
-                heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
-                bordersApplied[x, y] = true;
-                // populate border zone
-                for (int i = 0; i < BorderPadding; i++)
+                if (!BorderSafeZone[x, y])
                 {
-                    BorderZone[x - i, y] = true;
+                    heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
+                    BorderSafeZone[x, y] = true;
+                    // populate border zone
+                    for (int i = 0; i < BorderPadding; i++)
+                    {
+                        BorderZone[x - i, y] = true;
+                    }
                 }
             }
         }
@@ -121,10 +136,10 @@ public class BorderGenerator
             BorderTop[x] = randBorderSize;
             for (var y = 0; y < randBorderSize; y++)
             {
-                if (!bordersApplied[x, y])
+                if (!BorderSafeZone[x, y])
                 {
                     heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
-                    bordersApplied[x, y] = true;
+                    BorderSafeZone[x, y] = true;
                     if (!determinedCornerTopLeft) { CornerTopLeft = new(x, randBorderSize); determinedCornerTopLeft = true; }
                     if (determinedCornerTopLeft) CornerTopRight = new(x, y);
                     // populate border zone
@@ -146,10 +161,10 @@ public class BorderGenerator
             BorderBottom[x] = TerrainSize - randBorderSize;
             for (var y = TerrainSize - randBorderSize - 1; y < TerrainSize; y++)
             {
-                if (!bordersApplied[x, y])
+                if (!BorderSafeZone[x, y])
                 {
                     heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3 + OffsetX, (float)y / TerrainSize * Scale * 3 + OffsetY);
-                    bordersApplied[x, y] = true;
+                    BorderSafeZone[x, y] = true;
                     if (!determinedCornerBottomLeft) { CornerBottomLeft = new(x, y); determinedCornerBottomLeft = true; }
                     if (determinedCornerBottomLeft) CornerBottomRight = new(x, y);
                     for (int i = 0; i < BorderPadding; i++)
