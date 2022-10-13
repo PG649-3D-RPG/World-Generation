@@ -3,15 +3,13 @@ using UnityEngine;
 public class PerlinGenerator
 {
     private readonly int TerrainSize;
-    private readonly float Depth;
     private readonly float Scale;
     private readonly int OffsetX;
     private readonly int OffsetY;
 
-    public PerlinGenerator(int terrainSize, float depth, float scale, int offsetX, int offsetY)
+    public PerlinGenerator(int terrainSize, float scale, int offsetX, int offsetY)
     {
         TerrainSize = terrainSize;
-        Depth = depth;
         Scale = scale;
         OffsetX = offsetX;
         OffsetY = offsetY;

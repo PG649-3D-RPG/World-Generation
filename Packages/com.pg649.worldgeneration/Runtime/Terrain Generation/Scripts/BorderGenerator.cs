@@ -10,8 +10,8 @@ public class BorderGenerator
 
     // border fields
     private readonly int MinBorderSize;
-    public readonly int MaxBorderSize;
-    private readonly int BorderPadding;
+    public int MaxBorderSize { get; }
+    private readonly int BorderPadding = 10;
 
     // Smoothing fields
     private readonly bool UseSmoothing;
@@ -32,7 +32,7 @@ public class BorderGenerator
     Vector2Int CornerBottomLeft;
     Vector2Int CornerBottomRight;
 
-    public BorderGenerator(int terrainSize, float scale, int offsetX, int offsetY, int minBorderSize, int maxBorderSize, int borderPadding, bool useSmoothing, int smoothPasses, int smoothRadius, bool strongerSmoothing)
+    public BorderGenerator(int terrainSize, float scale, int offsetX, int offsetY, int minBorderSize, int maxBorderSize, bool useSmoothing, int smoothPasses, int smoothRadius, bool strongerSmoothing)
     {
         TerrainSize = terrainSize;
         Scale = scale;
@@ -40,7 +40,6 @@ public class BorderGenerator
         OffsetY = offsetY;
         MinBorderSize = minBorderSize;
         MaxBorderSize = maxBorderSize;
-        BorderPadding = borderPadding;
         UseSmoothing = useSmoothing;
         SmoothPasses = smoothPasses;
         SmoothRadius = smoothRadius;

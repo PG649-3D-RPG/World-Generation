@@ -19,9 +19,6 @@ public class EnvironmentGenerator
 
     private readonly Dictionary<string, int> CustomTerrainLayerIndices = new();
 
-    // internal border settings
-    private int BorderPadding = 10;
-
     private EnvironmentGeneratorSettings settings;
 
     bool IsPowerOfTwo(int x) => (x != 0) && ((x & (x - 1)) == 0); // from https://stackoverflow.com/a/600306
@@ -118,12 +115,12 @@ public class EnvironmentGenerator
         Terrain.terrainData.SetHeights(0, 0, heights);
 
         // create necessary new Generators
-        BorderGenerator = new BorderGenerator(settings.TerrainSize, settings.Scale, OffsetX, OffsetY, settings.MinBorderSize, settings.MaxBorderSize, BorderPadding, settings.UseSmoothing, settings.SmoothPasses, settings.SmoothRadius, settings.StrongerSmoothing);
+        BorderGenerator = new BorderGenerator(settings.TerrainSize, settings.Scale, OffsetX, OffsetY, settings.MinBorderSize, settings.MaxBorderSize, settings.UseSmoothing, settings.SmoothPasses, settings.SmoothRadius, settings.StrongerSmoothing);
 
         // Generate Environment
         if (settings.GenerateHeights)
         {
-            PerlinGenerator perlinGenerator = new PerlinGenerator(settings.TerrainSize, settings.Depth, settings.Scale, OffsetX, OffsetY);
+            PerlinGenerator perlinGenerator = new PerlinGenerator(settings.TerrainSize, settings.Scale, OffsetX, OffsetY);
             Terrain.terrainData = perlinGenerator.GenerateTerrain(Terrain.terrainData);
         }
         if (settings.GenerateBorders)
