@@ -30,8 +30,8 @@ public class EnvironmentGenerator
 
     public void Build()
     {
-        // OffsetX = Random.Range(0f, 9999f);
-        // OffsetY = Random.Range(0f, 9999f);
+        OffsetX = Random.Range(0, 9999);
+        OffsetY = Random.Range(0, 9999);
         if (settings.UseRandomSeed) Random.InitState(settings.RandomSeed);
 
         RegenerateTerrain();

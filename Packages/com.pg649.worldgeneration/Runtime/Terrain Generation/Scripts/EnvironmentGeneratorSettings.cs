@@ -15,7 +15,7 @@ public class EnvironmentGeneratorSettings : ScriptableObject
     public int TerrainSize = 256;
     public bool GenerateHeights = true;
     public float Depth = 10;
-    public float Scale = 2.5f;
+    public float Scale = 1;//2.5f;
 
 
     [Header("Border settings")]

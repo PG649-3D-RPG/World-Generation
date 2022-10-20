@@ -74,6 +74,23 @@ public class DungeonRoom : IGameObjectable{
         return go;
     }
 
+    public GameObject ToGameObjectTerrain(){
+        GameObject go = new GameObject("DungeonRoom");
+        Terrain terrain = go.AddComponent<Terrain>();
+        terrain.terrainData = new TerrainData();
+        terrain.materialTemplate = new Material(Shader.Find("Nature/Terrain/Diffuse"));
+        EnvironmentGeneratorSettings envSettings = ScriptableObject.CreateInstance<EnvironmentGeneratorSettings>();
+        envSettings.Depth = width/10; 
+        envSettings.Scale = 5f;
+        envSettings.TerrainSize = width;
+        envSettings.GenerateBorders = false;
+        envSettings.UseSmoothing = false;
+        envSettings.GenerateObstacles = false;
+        EnvironmentGenerator generator = new EnvironmentGenerator(ref terrain, envSettings);
+        generator.Build();
+        return go;
+    }
+
     public Vector3 RoomPoint{
         get{return roomPoint;}
     }
@@ -263,13 +280,21 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
 
 
     //p: probability to place a room in leaf * 100
-    public void PlaceRooms(int p = -1){
+    public void PlaceRooms(int p = -1, bool quadraticTerrain = false, int quadraticTerrainMin = 0, int quadraticTerrainMax = 0){
         Tuple<int,int>[] rMinMaxMargin = root.Node.MinMaxMargin;
         if(IsLeaf() && (p == -1 || (node.Rand.Next(1,101) <= p)) ){
             int leftMargin = node.Rand.Next(rMinMaxMargin[0].Item1,rMinMaxMargin[0].Item2+1);
             int rightMargin = node.Rand.Next(rMinMaxMargin[0].Item1,rMinMaxMargin[0].Item2+1);
             int depthLowerMargin = node.Rand.Next(rMinMaxMargin[1].Item1,rMinMaxMargin[1].Item2+1);
             int depthUpperMargin = node.Rand.Next(rMinMaxMargin[1].Item1,rMinMaxMargin[1].Item2+1);
+            if(quadraticTerrain){
+                int marginDivide = node.Rand.Next(quadraticTerrainMin, quadraticTerrainMax + 1);
+                int margin = (node.Size[0] - (node.Size[0] / (int)Math.Pow(2, marginDivide)))/2; 
+                leftMargin = margin;
+                rightMargin = margin;
+                depthLowerMargin = margin;
+                depthUpperMargin = margin;
+            }
            if(node.Dim == 2){
                 node.RoomPoint = new Vector3(node.Point[0]+leftMargin, 0, node.Point[1] + depthLowerMargin);
                 node.Room = new DungeonRoom(node.Size[0]-leftMargin-rightMargin, node.Size[1]-depthLowerMargin-depthUpperMargin, root.Node.FHeight(node), node.RoomPoint);
@@ -286,7 +311,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         }
         else{
             foreach(DungeonTreeT c in children){
-                c.PlaceRooms( p : p);
+                c.PlaceRooms( p : p, quadraticTerrain : quadraticTerrain, quadraticTerrainMin : quadraticTerrainMin, quadraticTerrainMax : quadraticTerrainMax);
             }
             switch(children.Count){
                 //fix me
@@ -388,7 +413,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
     }
 
 
-    public GameObject ToGameObject(){
+    public GameObject ToGameObject(bool terrain = false){
         GameObject go = new GameObject("DungeonTreeT");
         DungeonTreeMeta dtm = go.AddComponent<DungeonTreeMeta>();
         dtm.SetValues(node.Size, node.Point);
@@ -397,12 +422,12 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.ToGameObject().transform.parent = go.transform;
         }
         if(node.Room != null){
-            GameObject rgo = node.Room.ToGameObject();
+            GameObject rgo = terrain ? node.Room.ToGameObjectTerrain() : node.Room.ToGameObject();
             rgo.transform.parent = go.transform;
             rgo.transform.localPosition += node.RoomPoint- new Vector3(node.Point[0],0,node.Point[1]);
         }
         foreach(DungeonTreeT c in children){
-            GameObject cgo = c.ToGameObject();
+            GameObject cgo = c.ToGameObject(terrain : terrain);
             cgo.transform.parent = go.transform;
             cgo.transform.localPosition += new Vector3(c.node.Point[0],0,c.node.Point[1]) - new Vector3(node.Point[0],0,node.Point[1]);
         }
