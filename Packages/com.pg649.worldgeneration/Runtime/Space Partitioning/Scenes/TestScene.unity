@@ -153,23 +153,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   seed: 42
-  width: 1024
-  depth: 1024
+  width: 256
+  depth: 256
   partitionMode: 1
-  minPartitionWidth: 64
-  minPartitionDepth: 64
-  skipChildren: 2
-  leftRightMinMargin: 1
+  minPartitionWidth: 16
+  minPartitionDepth: 16
+  skipChildren: 0
+  leftRightMinMargin: 2
   leftRightMaxMargin: 5
-  frontBackMinMargin: 1
+  frontBackMinMargin: 2
   frontBackMaxMargin: 5
-  roomPlacementProbability: 85
-  useTerrains: 1
-  quadraticTerrain: 1
+  roomPlacementProbability: 50
+  useTerrains: 0
+  quadraticTerrain: 0
   divideMin: 1
   divideMax: 1
   minCorridorWidth: 1
-  maxCorridorWidth: 1
+  maxCorridorWidth: 2
   minCorridorHeight: 2
   maxCorridorHeight: 3
 --- !u!4 &59833268

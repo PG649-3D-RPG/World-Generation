@@ -109,14 +109,14 @@ public class SPTreeT : Tree<SPTreeNode>{
                 c1.node.Point = z.node.Point;
                 SPTreeT c2 = new SPTreeT(new int[] {x_,y}, rand : z.node.Rand);
                 c2.node.Point = (int[])z.node.Point.Clone();
-                c2.node.Point[0] += x_;
+                c2.node.Point[0] += x;
                 SPTreeT c3 = new SPTreeT(new int[] {x,y_}, rand : z.node.Rand);
                 c3.node.Point = (int[])z.node.Point.Clone();
                 c3.node.Point[1] += y;
                 SPTreeT c4 = new SPTreeT(new int[] {x_,y_}, rand : z.node.Rand);
                 c4.node.Point = (int[])z.node.Point.Clone();
-                c4.node.Point[0] += x_;
-                c4.node.Point[1] += y_;
+                c4.node.Point[0] += x;
+                c4.node.Point[1] += y;
                 z.AddChild(c1);
                 z.AddChild(c2);
                 z.AddChild(c3);

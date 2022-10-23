@@ -24,8 +24,8 @@ public class Generate2DDungeon : MonoBehaviour
     public int divideMin = 1;
     public int divideMax = 2;
     [Header("Corridors")]
-    public float minCorridorWidth = 1;
-    public float maxCorridorWidth = 1;
+    public int minCorridorWidth = 1;
+    public int maxCorridorWidth = 1;
     public float minCorridorHeight = 2;
     public float maxCorridorHeight = 3;
     void Start()
