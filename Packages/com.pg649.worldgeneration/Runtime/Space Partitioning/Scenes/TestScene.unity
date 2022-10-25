@@ -163,7 +163,7 @@ MonoBehaviour:
   leftRightMaxMargin: 5
   frontBackMinMargin: 2
   frontBackMaxMargin: 5
-  roomPlacementProbability: 50
+  roomPlacementProbability: 100
   useTerrains: 0
   quadraticTerrain: 0
   divideMin: 1

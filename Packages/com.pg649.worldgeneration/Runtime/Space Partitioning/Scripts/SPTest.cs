@@ -28,6 +28,7 @@ public class Generate2DDungeon : MonoBehaviour
     public int maxCorridorWidth = 1;
     public float minCorridorHeight = 2;
     public float maxCorridorHeight = 3;
+    public float maxDistance = 32;
     void Start()
     {
         int[] size = new int[] {width,depth};
@@ -50,7 +51,7 @@ public class Generate2DDungeon : MonoBehaviour
         dTree.Root.Node.FHeight = DungeonTreeNode.fHeight2DMinMax(3,4);
         dTree.Root.Node.MinMaxMargin = minMaxMargin;
         dTree.PlaceRooms(roomPlacementProbability, quadraticTerrain : quadraticTerrain, quadraticTerrainMin : divideMin, quadraticTerrainMax : divideMax);
-        dTree.PlaceCorridors(minCorridorWidth, maxCorridorWidth, minCorridorHeight, maxCorridorHeight);
+        dTree.PlaceCorridors(minCorridorWidth, maxCorridorWidth, minCorridorHeight, maxCorridorHeight, maxDistance : maxDistance);
         dTree.ToGameObject(terrain : useTerrains);
     }
 
