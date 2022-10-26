@@ -14,14 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UseRandomSeed: 0
   RandomSeed: 42
-  TerrainSize: 256
+  TerrainSizeX: 256
+  TerrainSizeY: 256
   GenerateHeights: 1
   Depth: 10
   Scale: 2.5
   GenerateBorders: 1
-  MaxBorderSize: 12
-  MinBorderSize: 6
-  UseSmoothing: 1
+  UseSmoothing: 0
   StrongerSmoothing: 0
   SmoothRadius: 4
   SmoothPasses: 1

@@ -1,7 +1,7 @@
-using System.Collections.Generic;
-using UnityEngine;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public class DungeonTreeMeta : MonoBehaviour{
     public int[] partitionSize;
@@ -34,7 +34,7 @@ public class DungeonRoom : IGameObjectable{
     private int width, depth;
     private float height;
     private List<DungeonCorridor> corridors;
-    private List<Tuple<Face,float>> corridorPoints;
+    private List<Tuple<Face,int,int>> corridorPoints;
     private bool[,] free;
     private System.Random rand;
     private Vector3 roomPoint;
@@ -52,7 +52,7 @@ public class DungeonRoom : IGameObjectable{
         this.roomPoint = roomPoint;
         free = new bool[width,depth];
         rand = rand ?? new System.Random();
-        corridorPoints = new List<Tuple<Face,float>>();
+        corridorPoints = new List<Tuple<Face,int,int>>();
     }
     public DungeonRoom(IEnumerable<int> x, Vector3 roomPoint, System.Random rand = null) : this(x.ToArray()[0],x.ToArray()[1],x.ToArray()[2], roomPoint, rand : rand){}
 
@@ -75,12 +75,13 @@ public class DungeonRoom : IGameObjectable{
         }
     }
 
-    public void AddCorridorPoint(Tuple<Face, float> t){
-        foreach(Tuple<Face,float> tp in corridorPoints){
-            if(tp.Item1 != t.Item1){
-                SetFreePath(tp.Item1, t.Item1, tp.Item2, t.Item2);
-            }
-        }
+    public void AddCorridorPoint(Tuple<Face, int,int> t){
+        corridorPoints.Add(t);
+        // foreach(Tuple<Face,float> tp in corridorPoints){
+        //     if(tp.Item1 != t.Item1){
+        //         SetFreePath(tp.Item1, t.Item1, tp.Item2, t.Item2);
+        //     }
+        // }
     }
 
     public Mesh ToMesh(){
@@ -113,13 +114,15 @@ public class DungeonRoom : IGameObjectable{
         terrain.terrainData = new TerrainData();
         terrain.materialTemplate = new Material(Shader.Find("Nature/Terrain/Diffuse"));
         EnvironmentGeneratorSettings envSettings = ScriptableObject.CreateInstance<EnvironmentGeneratorSettings>();
-        envSettings.Depth = width/10; 
+        envSettings.Depth = depth/10; 
         envSettings.Scale = 5f;
-        envSettings.TerrainSize = width;
-        envSettings.GenerateBorders = false;
+        envSettings.TerrainSizeX = width;
+        envSettings.TerrainSizeY = depth;
+        envSettings.GenerateHeights = true;
+        envSettings.GenerateBorders = true;
         envSettings.UseSmoothing = false;
         envSettings.GenerateObstacles = false;
-        EnvironmentGenerator generator = new EnvironmentGenerator(ref terrain, envSettings);
+        EnvironmentGenerator generator = new EnvironmentGenerator(ref terrain, envSettings,corridorPoints);
         generator.Build();
         return go;
     }
@@ -496,6 +499,8 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                 mid2 = new Vector3(end.x,end.y, children[0].Node.Size[1]);
                 startFace = DungeonRoom.Face.Back;
                 endFace = DungeonRoom.Face.Front;
+                startRoom.AddCorridorPoint(new(startFace, startPointIndex, width));
+                endRoom.AddCorridorPoint(new(endFace, endPointIndex,width));
             }   
             else{
                 int cri1 = node.Rand.Next(0,children[0].Node.RoomsEast.Count);
@@ -517,6 +522,8 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                 mid2 = new Vector3(children[0].Node.Size[0],end.y, end.z);
                 startFace = DungeonRoom.Face.Right;
                 endFace = DungeonRoom.Face.Left;
+                startRoom.AddCorridorPoint(new(startFace, startPointIndex,width));
+                endRoom.AddCorridorPoint(new(endFace, endPointIndex,width));
             }
             corridor.StartRoom = startRoom;
             corridor.StartRoom = endRoom;

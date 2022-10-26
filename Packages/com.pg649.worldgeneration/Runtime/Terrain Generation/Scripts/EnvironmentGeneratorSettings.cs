@@ -11,8 +11,9 @@ public class EnvironmentGeneratorSettings : ScriptableObject
 
     [Header("Terrain settings")]
     [Space(10)]
-    [Tooltip("Must be 2^n, creates always a square terrain")]
-    public int TerrainSize = 256;
+    // [Tooltip("Must be 2^n, creates always a square terrain")]
+    public int TerrainSizeX = 256;
+    public int TerrainSizeY = 256;
     public bool GenerateHeights = true;
     public float Depth = 10;
     public float Scale = 1;//2.5f;
@@ -21,8 +22,8 @@ public class EnvironmentGeneratorSettings : ScriptableObject
     [Header("Border settings")]
     [Space(10)]
     public bool GenerateBorders = true;
-    public int MaxBorderSize = 12;
-    public int MinBorderSize = 6;
+    public int MaxBorderSize => Mathf.Min(12, Mathf.Max(TerrainSizeX, TerrainSizeY) / 8);
+    public int MinBorderSize => Mathf.Max(Mathf.Min(6, Mathf.Max(TerrainSizeX, TerrainSizeY) / 10), 2);
     public bool UseSmoothing = true;
     public bool StrongerSmoothing = false;
     public int SmoothRadius = 4;
@@ -39,27 +40,26 @@ public class EnvironmentGeneratorSettings : ScriptableObject
     [Space(10)]
     public bool GeneratePlants = false;
 
-    public EnvironmentGeneratorSettings() { }
+    // public EnvironmentGeneratorSettings() { }
 
-    public EnvironmentGeneratorSettings(bool useRandomSeed, int randomSeed, int terrainSize, bool generateHeights, float depth, float scale, bool generateBorders, int maxBorderSize, int minBorderSize, bool useSmoothing, bool strongerSmoothing, int smoothRadius, int smoothPasses, bool generateObstacles, int obstacleSize, int numberOfObstacles, int obstaclePadding, bool generatePlants)
-    {
-        UseRandomSeed = useRandomSeed;
-        RandomSeed = randomSeed;
-        TerrainSize = terrainSize;
-        GenerateHeights = generateHeights;
-        Depth = depth;
-        Scale = scale;
-        GenerateBorders = generateBorders;
-        MaxBorderSize = maxBorderSize;
-        MinBorderSize = minBorderSize;
-        UseSmoothing = useSmoothing;
-        StrongerSmoothing = strongerSmoothing;
-        SmoothRadius = smoothRadius;
-        SmoothPasses = smoothPasses;
-        GenerateObstacles = generateObstacles;
-        ObstacleSize = obstacleSize;
-        NumberOfObstacles = numberOfObstacles;
-        ObstaclePadding = obstaclePadding;
-        GeneratePlants = generatePlants;
-    }
+    // public EnvironmentGeneratorSettings(bool useRandomSeed, int randomSeed, int terrainSize, bool generateHeights, float depth, float scale, bool generateBorders, int maxBorderSize, int minBorderSize, bool useSmoothing, bool strongerSmoothing, int smoothRadius, int smoothPasses, bool generateObstacles, int obstacleSize, int numberOfObstacles, int obstaclePadding, bool generatePlants)
+    // {
+    //     UseRandomSeed = useRandomSeed;
+    //     RandomSeed = randomSeed;
+    //     TerrainSizeX = terrainSizeX;
+    //     TerrainSizeY = terrainSizeY;
+    //     GenerateHeights = generateHeights;
+    //     Depth = depth;
+    //     Scale = scale;
+    //     GenerateBorders = generateBorders;
+    //     UseSmoothing = useSmoothing;
+    //     StrongerSmoothing = strongerSmoothing;
+    //     SmoothRadius = smoothRadius;
+    //     SmoothPasses = smoothPasses;
+    //     GenerateObstacles = generateObstacles;
+    //     ObstacleSize = obstacleSize;
+    //     NumberOfObstacles = numberOfObstacles;
+    //     ObstaclePadding = obstaclePadding;
+    //     GeneratePlants = generatePlants;
+    // }
 }

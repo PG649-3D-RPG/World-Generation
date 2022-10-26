@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657874, g: 0.49641275, b: 0.5748172, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -153,25 +153,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   seed: 42
-  width: 256
-  depth: 256
-  partitionMode: 1
-  minPartitionWidth: 16
-  minPartitionDepth: 16
+  width: 1024
+  depth: 1024
+  partitionMode: 0
+  minPartitionWidth: 64
+  minPartitionDepth: 64
   skipChildren: 0
-  leftRightMinMargin: 2
-  leftRightMaxMargin: 5
-  frontBackMinMargin: 2
-  frontBackMaxMargin: 5
-  roomPlacementProbability: 100
-  useTerrains: 0
+  leftRightMinMargin: 5
+  leftRightMaxMargin: 16
+  frontBackMinMargin: 5
+  frontBackMaxMargin: 16
+  roomPlacementProbability: 60
+  useTerrains: 1
   quadraticTerrain: 0
   divideMin: 1
   divideMax: 1
-  minCorridorWidth: 1
-  maxCorridorWidth: 2
+  minCorridorWidth: 4
+  maxCorridorWidth: 10
   minCorridorHeight: 2
   maxCorridorHeight: 3
+  maxDistance: 32
 --- !u!4 &59833268
 Transform:
   m_ObjectHideFlags: 0

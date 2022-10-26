@@ -32,9 +32,9 @@ public class ObstacleGenerator
     {
         return ObstacleZone;
     }
-    public TerrainData GenerateObstacles(TerrainData terrainData)
+    public void GenerateObstacles(ref float[,] heights)
     {
-        var heights = terrainData.GetHeights(0, 0, TerrainSize, TerrainSize);
+        //var heights = terrainData.GetHeights(0, 0, TerrainSize, TerrainSize);
         //TODO Random edges for obstacles as well
         for (int i = 0; i < NumberOfObstacles; i++)
         {
@@ -54,8 +54,8 @@ public class ObstacleGenerator
             }
         }
 
-        terrainData.SetHeights(0, 0, heights);
-        return terrainData;
+        // terrainData.SetHeights(0, 0, heights);
+        // return terrainData;
     }
 
     Vector2Int? GenerateObstaclePosition()
