@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.IO;
 
 public class Generate2DDungeon : MonoBehaviour
 {
@@ -29,6 +30,8 @@ public class Generate2DDungeon : MonoBehaviour
     public float minCorridorHeight = 2;
     public float maxCorridorHeight = 3;
     public float maxDistance = 32;
+    [Header("Other")]
+    public bool createTexture = false;
     void Start()
     {
         int[] size = new int[] {width,depth};
@@ -53,6 +56,11 @@ public class Generate2DDungeon : MonoBehaviour
         dTree.PlaceRooms(roomPlacementProbability, quadraticTerrain : quadraticTerrain, quadraticTerrainMin : divideMin, quadraticTerrainMax : divideMax);
         dTree.PlaceCorridors(minCorridorWidth, maxCorridorWidth, minCorridorHeight, maxCorridorHeight, maxDistance : maxDistance);
         dTree.ToGameObject(terrain : useTerrains);
+        if(createTexture){
+            Texture2D t = dTree.ToTexture();
+            byte[] bytes = ImageConversion.EncodeArrayToPNG(t.GetRawTextureData(), t.graphicsFormat, (uint)t.width, (uint)t.height);
+            File.WriteAllBytes(Application.dataPath + "/dungeon.png", bytes);
+        } 
     }
 
     // Update is called once per frame

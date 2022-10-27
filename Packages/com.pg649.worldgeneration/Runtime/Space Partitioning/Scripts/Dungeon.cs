@@ -37,7 +37,7 @@ public class DungeonRoom : IGameObjectable{
     private List<Tuple<Face,int,int>> corridorPoints;
     private bool[,] free;
     private System.Random rand;
-    private Vector3 roomPoint;
+    private Vector3Int roomPoint;
 
 
     public enum Face{
@@ -45,7 +45,7 @@ public class DungeonRoom : IGameObjectable{
     }
 
 
-    public DungeonRoom(int width, int depth, float height, Vector3 roomPoint, System.Random rand = null){
+    public DungeonRoom(int width, int depth, float height, Vector3Int roomPoint, System.Random rand = null){
         this.width = width;
         this.depth = depth;
         this.height = height;
@@ -54,7 +54,7 @@ public class DungeonRoom : IGameObjectable{
         rand = rand ?? new System.Random();
         corridorPoints = new List<Tuple<Face,int,int>>();
     }
-    public DungeonRoom(IEnumerable<int> x, Vector3 roomPoint, System.Random rand = null) : this(x.ToArray()[0],x.ToArray()[1],x.ToArray()[2], roomPoint, rand : rand){}
+    public DungeonRoom(IEnumerable<int> x, Vector3Int roomPoint, System.Random rand = null) : this(x.ToArray()[0],x.ToArray()[1],x.ToArray()[2], roomPoint, rand : rand){}
 
     //doesnt work if both points are on the same boundary
     public void SetFreePath(Face f1, Face f2, float p1, float p2){
@@ -125,6 +125,14 @@ public class DungeonRoom : IGameObjectable{
         EnvironmentGenerator generator = new EnvironmentGenerator(ref terrain, envSettings,corridorPoints);
         generator.Build();
         return go;
+    }
+
+    public void ApplyToBoolArray(bool[,] m){
+        for(int i = roomPoint.x; i < roomPoint.x + width; i++){
+            for(int j = roomPoint.z; j < roomPoint.z + depth; j++){
+                m[i,j] = true;
+            }
+        }
     }
 
     public Vector3 RoomPoint{
@@ -199,6 +207,10 @@ public class DungeonCorridor : IGameObjectable {
         return l;
     }
 
+    public void ApplyToBoolArray(bool[,] m){
+        
+    }
+
     public List<Vector3> Path{
         get{return path;}
         set{path = value;}
@@ -262,7 +274,7 @@ public class DimensionMismatchException : Exception{
 
 
 public class DungeonTreeNode : SPTreeNode{
-    private Vector3 roomPoint;
+    private Vector3Int roomPoint;
     private DungeonRoom room;
     private List<DungeonCorridor> corridors;
     private Tuple<int,int>[] minMaxMargin;
@@ -309,7 +321,7 @@ public class DungeonTreeNode : SPTreeNode{
         get{return room;}
         set{room = value;}
     }
-    public Vector3 RoomPoint{
+    public Vector3Int RoomPoint{
         get{return roomPoint;}
         set{roomPoint = value;}
     }
@@ -360,14 +372,14 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                 depthUpperMargin = margin;
             }
            if(node.Dim == 2){
-                node.RoomPoint = new Vector3(node.Point[0]+leftMargin, 0, node.Point[1] + depthLowerMargin);
+                node.RoomPoint = new Vector3Int(node.Point[0]+leftMargin, 0, node.Point[1] + depthLowerMargin);
                 node.Room = new DungeonRoom(node.Size[0]-leftMargin-rightMargin, node.Size[1]-depthLowerMargin-depthUpperMargin, root.Node.FHeight(node), node.RoomPoint);
                 
            }
            else if(node.Dim == 3){
                 int heightLowerMargin = node.Dim > 2 ? node.Rand.Next(rMinMaxMargin[2].Item1,rMinMaxMargin[2].Item2+1) : 0;
                 int heightUpperMargin = node.Dim > 2 ? node.Rand.Next(rMinMaxMargin[2].Item1,rMinMaxMargin[2].Item2+1) : 0;
-                node.RoomPoint = new Vector3(node.Point[0]+leftMargin, node.Point[2] + heightLowerMargin, node.Point[1] + depthLowerMargin);
+                node.RoomPoint = new Vector3Int(node.Point[0]+leftMargin, node.Point[2] + heightLowerMargin, node.Point[1] + depthLowerMargin);
                 node.Room = new DungeonRoom(node.Size[0]-leftMargin-rightMargin, node.Size[1]-depthLowerMargin-depthUpperMargin, node.Size[2]-heightLowerMargin-heightUpperMargin, node.RoomPoint);
                 
            }
@@ -474,7 +486,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
     }
 
     //fix remove mid2 if mid = mid2
-    public void PlaceCorridor2(int minWidth, int maxWidth, float minHeight, float maxHeight, float maxDistance = float.MaxValue){
+    private void PlaceCorridor2(int minWidth, int maxWidth, float minHeight, float maxHeight, float maxDistance = float.MaxValue){
         int width = node.Rand.Next(minWidth, maxWidth+1);
         float height = (float)node.Rand.NextDouble()*(maxHeight-minHeight)+minHeight;
         if((node.Size[0] == children[0].Node.Size[0] && children[0].Node.RoomsNorth.Count > 0 && children[1].Node.RoomsSouth.Count > 0) || node.Size[1] == children[0].Node.Size[1] && children[0].Node.RoomsEast.Count > 0 && children[1].Node.RoomsWest.Count > 0){
@@ -499,8 +511,8 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                 mid2 = new Vector3(end.x,end.y, children[0].Node.Size[1]);
                 startFace = DungeonRoom.Face.Back;
                 endFace = DungeonRoom.Face.Front;
-                startRoom.AddCorridorPoint(new(startFace, startPointIndex, width));
-                endRoom.AddCorridorPoint(new(endFace, endPointIndex,width));
+                startRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(startFace, startPointIndex, width));
+                endRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(endFace, endPointIndex,width));
             }   
             else{
                 int cri1 = node.Rand.Next(0,children[0].Node.RoomsEast.Count);
@@ -522,8 +534,8 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                 mid2 = new Vector3(children[0].Node.Size[0],end.y, end.z);
                 startFace = DungeonRoom.Face.Right;
                 endFace = DungeonRoom.Face.Left;
-                startRoom.AddCorridorPoint(new(startFace, startPointIndex,width));
-                endRoom.AddCorridorPoint(new(endFace, endPointIndex,width));
+                startRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(startFace, startPointIndex,width));
+                endRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(endFace, endPointIndex,width));
             }
             corridor.StartRoom = startRoom;
             corridor.StartRoom = endRoom;
@@ -536,7 +548,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         }
     }
 
-    public void PlaceCorridors4(int minWidth, int maxWidth, float minHeight, float maxHeight){
+    private void PlaceCorridors4(int minWidth, int maxWidth, float minHeight, float maxHeight){
         if(children[0].Node.RoomsEast.Count > 0 && children[1].Node.RoomsWest.Count > 0){
             int width = node.Rand.Next(minWidth, maxWidth+1);
             float height = (float)node.Rand.NextDouble()*(maxHeight-minHeight)+minHeight;
@@ -657,4 +669,25 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         }
         return go;
     }
-}
+
+    public bool[,] ToBoolArray(bool[,] m = null){
+        m ??= new bool[node.Size[0], node.Size[1]];
+        foreach(DungeonCorridor corridor in node.Corridors) corridor.ApplyToBoolArray(m);
+        if(node.Room != null) node.Room.ApplyToBoolArray(m);
+        foreach(DungeonTreeT c in children) c.ToBoolArray(m);
+        return m;
+    }
+
+    public Texture2D ToTexture(){
+        bool[,] m = ToBoolArray();
+        Texture2D t = new Texture2D(node.Size[0], node.Size[1], TextureFormat.RGBA32, false);
+        for(int i = 0; i < m.GetLength(0); i ++){
+            for(int j = 0; j < m.GetLength(1); j++){
+                if(m[i,j]) t.SetPixel(i,j, Color.black);
+            }
+        }
+        t.Apply();
+        return t;
+    }
+}   
+
