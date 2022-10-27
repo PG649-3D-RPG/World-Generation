@@ -4,8 +4,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 // using Unity.AI.Navigation;
 
-public class EnvironmentGenerator
-{
+public class EnvironmentGenerator {
     private Terrain Terrain { get; set; }
     private BorderGenerator BorderGenerator { get; set; }
     private int OffsetX { get; set; } = 0;
@@ -23,16 +22,14 @@ public class EnvironmentGenerator
     private List<Tuple<DungeonRoom.Face, int, int>> corridorPoints;
 
     bool IsPowerOfTwo(int x) => (x != 0) && ((x & (x - 1)) == 0); // from https://stackoverflow.com/a/600306
-    public EnvironmentGenerator(ref Terrain terrain, EnvironmentGeneratorSettings generatorSettings, List<Tuple<DungeonRoom.Face, int, int>> cp = null)
-    {
+    public EnvironmentGenerator(ref Terrain terrain, EnvironmentGeneratorSettings generatorSettings, List<Tuple<DungeonRoom.Face, int, int>> cp = null) {
         settings = generatorSettings;
         corridorPoints = cp;
         //if (!IsPowerOfTwo(settings.TerrainSize)) throw new System.ArgumentException("TerrainSize must be a power of 2");
         Terrain = terrain;
     }
 
-    public void Build()
-    {
+    public void Build() {
         OffsetX = Random.Range(0, 9999);
         OffsetY = Random.Range(0, 9999);
         if (settings.UseRandomSeed) Random.InitState(settings.RandomSeed);
@@ -40,8 +37,7 @@ public class EnvironmentGenerator
         RegenerateTerrain();
     }
 
-    public void ShowZone(ZONES zone)
-    {
+    public void ShowZone(ZONES zone) {
         // switch (zone)
         // {
         //     case ZONES.BORDERS:
@@ -64,25 +60,24 @@ public class EnvironmentGenerator
         //         break;
         // }
     }
-    public void RemoveZone(ZONES zone)
-    {
-        switch (zone)
-        {
-            case ZONES.BORDERS:
-                RemoveTerrainLayer(Terrain.terrainData, "border");
-                break;
-            case ZONES.OBSTACLES:
-                RemoveTerrainLayer(Terrain.terrainData, "obstacles");
-                break;
-            case ZONES.FREE:
-                RemoveTerrainLayer(Terrain.terrainData, "free");
-                break;
-            case ZONES.USED:
-                RemoveTerrainLayer(Terrain.terrainData, "used");
-                break;
-            default:
-                break;
-        }
+    public void RemoveZone(ZONES zone) {
+        // switch (zone)
+        // {
+        //     case ZONES.BORDERS:
+        //         RemoveTerrainLayer(Terrain.terrainData, "border");
+        //         break;
+        //     case ZONES.OBSTACLES:
+        //         RemoveTerrainLayer(Terrain.terrainData, "obstacles");
+        //         break;
+        //     case ZONES.FREE:
+        //         RemoveTerrainLayer(Terrain.terrainData, "free");
+        //         break;
+        //     case ZONES.USED:
+        //         RemoveTerrainLayer(Terrain.terrainData, "used");
+        //         break;
+        //     default:
+        //         break;
+        // }
     }
 
     /// <summary>
@@ -90,30 +85,25 @@ public class EnvironmentGenerator
     /// </summary>
     /// <param name="position">Position vector of object on terrain</param>
     /// <returns></returns>
-    public float GetTerrainHeight(Vector3 position)
-    {
+    public float GetTerrainHeight(Vector3 position) {
         return Terrain.SampleHeight(position);
     }
-    private int ToNextPowerOfTwo(int i)
-    {
+    private int ToNextPowerOfTwo(int i) {
         // if i == 0 or i==zweierpotenz return i
         if (IsPowerOfTwo(i)) return i;
         // shift bits until value==1
         int exp = 1;
         int n = Mathf.Abs(i);
-        while (n > 1)
-        {
+        while (n > 1) {
             n >>= 1;
             exp++;
         }
         return 0b1 << exp;
     }
 
-    private void RegenerateTerrain()
-    {
+    private void RegenerateTerrain() {
         // clear all runtime containers
-        foreach (var layerName in CustomTerrainLayerIndices.Keys)
-        {
+        foreach (var layerName in CustomTerrainLayerIndices.Keys) {
             RemoveTerrainLayer(Terrain.terrainData, layerName);
         }
         CustomTerrainLayerIndices.Clear();
@@ -134,13 +124,11 @@ public class EnvironmentGenerator
         BorderGenerator = new BorderGenerator(heights.GetLength(1), heights.GetLength(0), settings.Scale, OffsetX, OffsetY, settings.MinBorderSize, settings.MaxBorderSize, settings.UseSmoothing, settings.SmoothPasses, settings.SmoothRadius, settings.StrongerSmoothing);
 
         // Generate Environment
-        if (settings.GenerateHeights)
-        {
+        if (settings.GenerateHeights) {
             PerlinGenerator perlinGenerator = new PerlinGenerator(settings.Scale, OffsetX, OffsetY);
             perlinGenerator.GenerateTerrain(ref heights);
         }
-        if (settings.GenerateBorders)
-        {
+        if (settings.GenerateBorders) {
             bool[,] safeZone = new bool[heights.GetLength(1), heights.GetLength(0)];
             // for (int i = 0; i < settings.MaxBorderSize; i++)
             // {
@@ -149,49 +137,38 @@ public class EnvironmentGenerator
             //         safeZone[0 + i, j] = true;
             //     }
             // }
-            if (corridorPoints != null)
-            {
-                foreach (var (face, offset, width) in corridorPoints)
-                {
+            if (corridorPoints != null) {
+                foreach (var (face, offset, width) in corridorPoints) {
                     // face,offset,width
                     Debug.Log("TerrainSize: " + settings.TerrainSizeX + ", " + settings.TerrainSizeY);
                     Debug.Log("HeightmapRes: " + (ToNextPowerOfTwo(Mathf.Max(settings.TerrainSizeX, settings.TerrainSizeY)) + 1) + ", " + Terrain.terrainData.heightmapResolution);
                     Debug.Log("Room size: (" + heights.GetLength(1) + ", " + heights.GetLength(0) + ")");
                     Debug.Log("Corridor: (" + face + ", " + offset + ", " + width + ")");
-                    switch (face)
-                    {
+                    switch (face) {
                         case DungeonRoom.Face.Left:
-                            for (int y = safeZone.GetLength(0) - offset - width; y < safeZone.GetLength(0) - offset; y++)
-                            {
-                                for (int x = 0; x < settings.MaxBorderSize; x++)
-                                {
+                            for (int y = safeZone.GetLength(0) - offset - width; y < safeZone.GetLength(0) - offset; y++) {
+                                for (int x = 0; x < settings.MaxBorderSize; x++) {
                                     safeZone[y, x] = true;
                                 }
                             }
                             break;
                         case DungeonRoom.Face.Right:
-                            for (int y = safeZone.GetLength(0) - offset - width; y < safeZone.GetLength(0) - offset; y++)
-                            {
-                                for (int x = heights.GetLength(1) - settings.MaxBorderSize; x < settings.MaxBorderSize; x++)
-                                {
+                            for (int y = safeZone.GetLength(0) - offset - width; y < safeZone.GetLength(0) - offset; y++) {
+                                for (int x = heights.GetLength(1) - settings.MaxBorderSize; x < settings.MaxBorderSize; x++) {
                                     safeZone[y, x] = true;
                                 }
                             }
                             break;
                         case DungeonRoom.Face.Front:
-                            for (int x = safeZone.GetLength(1) - offset - width; x < safeZone.GetLength(1) - offset; x++)
-                            {
-                                for (int y = 0; y < settings.MaxBorderSize; y++)
-                                {
+                            for (int x = safeZone.GetLength(1) - offset - width; x < safeZone.GetLength(1) - offset; x++) {
+                                for (int y = 0; y < settings.MaxBorderSize; y++) {
                                     safeZone[y, x] = true;
                                 }
                             }
                             break;
                         case DungeonRoom.Face.Back:
-                            for (int x = safeZone.GetLength(1) - offset - width; x < safeZone.GetLength(1) - offset; x++)
-                            {
-                                for (int y = heights.GetLength(0) - settings.MaxBorderSize; y < settings.MaxBorderSize; y++)
-                                {
+                            for (int x = safeZone.GetLength(1) - offset - width; x < safeZone.GetLength(1) - offset; x++) {
+                                for (int y = heights.GetLength(0) - settings.MaxBorderSize; y < settings.MaxBorderSize; y++) {
                                     safeZone[y, x] = true;
                                 }
                             }
@@ -228,13 +205,10 @@ public class EnvironmentGenerator
         // UpdateFreeAndUsedSpace();
     }
 
-    public void UpdateFreeAndUsedSpace()
-    {
+    public void UpdateFreeAndUsedSpace() {
         // naively calculate used and unused spaces
-        for (int x = 0; x < settings.TerrainSizeX; x++)
-        {
-            for (int y = 0; y < settings.TerrainSizeY; y++)
-            {
+        for (int x = 0; x < settings.TerrainSizeX; x++) {
+            for (int y = 0; y < settings.TerrainSizeY; y++) {
                 FreeSpace[y, x] = !(BorderZone[y, x] || ObstacleZone[y, x]);
                 UsedSpace[y, x] = BorderZone[y, x] || ObstacleZone[y, x];
             }
@@ -246,14 +220,12 @@ public class EnvironmentGenerator
     /// </summary>
     /// <param name="terrainData"><see cref="TerrainData"/> to add layer to.</param>
     /// <param name="inputLayer"><see cref="TerrainLayer"/> to add.</param>
-    private void AddTerrainLayer(TerrainData terrainData, TerrainLayer inputLayer, string layerName)
-    {
+    private void AddTerrainLayer(TerrainData terrainData, TerrainLayer inputLayer, string layerName) {
         if (inputLayer == null)
             return;
 
         var layers = terrainData.terrainLayers;
-        for (var idx = 0; idx < layers.Length; ++idx)
-        {
+        for (var idx = 0; idx < layers.Length; ++idx) {
             if (layers[idx] == inputLayer)
                 return;
         }
@@ -267,14 +239,11 @@ public class EnvironmentGenerator
         terrainData.terrainLayers = newarray;
     }
 
-    private void RemoveTerrainLayer(TerrainData terrainData, string layerName)
-    {
-        if (CustomTerrainLayerIndices.TryGetValue(layerName, out int layernum))
-        {
+    private void RemoveTerrainLayer(TerrainData terrainData, string layerName) {
+        if (CustomTerrainLayerIndices.TryGetValue(layerName, out int layernum)) {
             var oldLayers = terrainData.terrainLayers;
             var newLayers = new TerrainLayer[oldLayers.Length - 1];
-            for (int i = 0; i < oldLayers.Length; i++)
-            {
+            for (int i = 0; i < oldLayers.Length; i++) {
                 if (i == layernum) continue;
                 newLayers[i] = oldLayers[i];
             }
