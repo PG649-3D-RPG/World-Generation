@@ -1,7 +1,6 @@
 using UnityEngine;
 
-public class ObstacleGenerator
-{
+public class ObstacleGenerator {
     // general terrain fields
     private readonly int TerrainSize;
     private readonly float Scale;
@@ -16,8 +15,7 @@ public class ObstacleGenerator
 
     private readonly bool[,] ObstacleZone;
 
-    public ObstacleGenerator(int terrainSize, float scale, int numberOfObstacles, int obstacleWidth, int obstacleHeight, int obstaclePadding, BorderGenerator borderGenerator)
-    {
+    public ObstacleGenerator(int terrainSize, float scale, int numberOfObstacles, int obstacleWidth, int obstacleHeight, int obstaclePadding, BorderGenerator borderGenerator) {
         TerrainSize = terrainSize;
         Scale = scale;
         NumberOfObstacles = numberOfObstacles;
@@ -28,27 +26,22 @@ public class ObstacleGenerator
 
         ObstacleZone = new bool[terrainSize, terrainSize];
     }
-    public bool[,] GetObstacleZone()
-    {
+    public bool[,] GetObstacleZone() {
         return ObstacleZone;
     }
-    public void GenerateObstacles(ref float[,] heights)
-    {
+    public void GenerateObstacles(ref float[,] heights) {
         //var heights = terrainData.GetHeights(0, 0, TerrainSize, TerrainSize);
         //TODO Random edges for obstacles as well
-        for (int i = 0; i < NumberOfObstacles; i++)
-        {
+        for (int i = 0; i < NumberOfObstacles; i++) {
             var obstaclePositions = GenerateObstaclePosition();
             if (!obstaclePositions.HasValue) continue; // if no suitable position could be found
             var obstaclePosX = obstaclePositions.Value.x;
             var obstaclePosY = obstaclePositions.Value.y;
 
             // create obstacle
-            for (int x = obstaclePosX; x < obstaclePosX + ObstacleWidth; x++)
-            {
-                for (int y = obstaclePosY; y < obstaclePosY + ObstacleHeight; y++)
-                {
-                    heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSize * Scale * 3, (float)y / TerrainSize * Scale * 3);
+            for (int x = obstaclePosX; x < obstaclePosX + ObstacleWidth; x++) {
+                for (int y = obstaclePosY; y < obstaclePosY + ObstacleHeight; y++) {
+                    heights[y, x] += Mathf.PerlinNoise((float) x / TerrainSize * Scale * 3, (float) y / TerrainSize * Scale * 3);
                     ObstacleZone[x, y] = true;
                 }
             }
@@ -58,10 +51,8 @@ public class ObstacleGenerator
         // return terrainData;
     }
 
-    Vector2Int? GenerateObstaclePosition()
-    {
-        for (int n = 0; n < 5; n++)
-        {
+    Vector2Int? GenerateObstaclePosition() {
+        for (int n = 0; n < 5; n++) {
             //TODO utilize freeSpace for position calculation
             var obstaclePosX = Random.Range(BorderGenerator.MaxBorderSize + 1, TerrainSize - BorderGenerator.MaxBorderSize - ObstacleWidth);
             var obstaclePosY = Random.Range(BorderGenerator.MaxBorderSize + 1, TerrainSize - BorderGenerator.MaxBorderSize - ObstacleHeight);
@@ -69,8 +60,7 @@ public class ObstacleGenerator
             if (obstaclePosX > BorderGenerator.BorderLeft[obstaclePosY] + ObstaclePadding &&
             obstaclePosX + ObstacleWidth < BorderGenerator.BorderRight[obstaclePosY] + ObstaclePadding &&
             obstaclePosY > BorderGenerator.BorderTop[obstaclePosX] + ObstaclePadding &&
-            obstaclePosY + ObstacleHeight < BorderGenerator.BorderBottom[obstaclePosX] + ObstaclePadding)
-            {
+            obstaclePosY + ObstacleHeight < BorderGenerator.BorderBottom[obstaclePosX] + ObstaclePadding) {
                 return new(obstaclePosX, obstaclePosY);
             }
         }

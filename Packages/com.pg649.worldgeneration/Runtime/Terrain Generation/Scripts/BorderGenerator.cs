@@ -1,7 +1,6 @@
 using UnityEngine;
 
-public class BorderGenerator
-{
+public class BorderGenerator {
     // general terrain fields
     private readonly int TerrainSizeX;
     private readonly int TerrainSizeY;
@@ -36,8 +35,7 @@ public class BorderGenerator
     // coordinates where borders are located, also [y,x] indexed
     private bool[,] BorderSafeZone = null;
 
-    public BorderGenerator(int terrainSizeY, int terrainSizeX, float scale, int offsetX, int offsetY, int minBorderSize, int maxBorderSize, bool useSmoothing, int smoothPasses, int smoothRadius, bool strongerSmoothing)
-    {
+    public BorderGenerator(int terrainSizeY, int terrainSizeX, float scale, int offsetX, int offsetY, int minBorderSize, int maxBorderSize, bool useSmoothing, int smoothPasses, int smoothRadius, bool strongerSmoothing) {
         TerrainSizeX = terrainSizeX;
         TerrainSizeY = terrainSizeY;
         Scale = scale;
@@ -64,42 +62,35 @@ public class BorderGenerator
         CornerBottomRight = new(1, 1);
     }
 
-    public bool[,] GetBorderZone()
-    {
+    public bool[,] GetBorderZone() {
         return BorderZone;
     }
 
-    public void SetBorderSafeZone(bool[,] safeZoneArr)
-    {
+    public void SetBorderSafeZone(bool[,] safeZoneArr) {
         // if (safeZoneArr.GetLength(0) != TerrainSizeY || safeZoneArr.GetLength(1) != TerrainSizeX)
         //     throw new System.ArgumentOutOfRangeException("BorderSafeZone must be of dimension [TerrainSize,TerrainSize]");
         BorderSafeZone = safeZoneArr;
     }
 
     // generate hills around edges
-    public void GenerateBorders(ref float[,] heights)
-    {
+    public void GenerateBorders(ref float[,] heights) {
         //var heights = terrainData.GetHeights(0, 0, TerrainSize, TerrainSize);
 
         BorderSafeZone ??= new bool[TerrainSizeY, TerrainSizeX];
 
         // left border
         int randBorderSize = Random.Range(MinBorderSize, MaxBorderSize + 1);
-        for (var y = 0; y < TerrainSizeY; y++)
-        {
+        for (var y = 0; y < TerrainSizeY; y++) {
             randBorderSize += Random.Range(-1, 2);
             if (randBorderSize < MinBorderSize) randBorderSize = MinBorderSize;
             if (randBorderSize > MaxBorderSize) randBorderSize = MaxBorderSize;
             BorderLeft[y] = randBorderSize;
-            for (var x = 0; x < randBorderSize; x++)
-            {
-                if (!BorderSafeZone[x, y])
-                {
-                    heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSizeX * Scale * 3 + OffsetX, (float)y / TerrainSizeY * Scale * 3 + OffsetY);
+            for (var x = 0; x < randBorderSize; x++) {
+                if (!BorderSafeZone[x, y]) {
+                    heights[y, x] += Mathf.PerlinNoise((float) x / TerrainSizeX * Scale * 3 + OffsetX, (float) y / TerrainSizeY * Scale * 3 + OffsetY);
                     BorderSafeZone[x, y] = true;
                     // populate border zone
-                    for (int i = 0; i < BorderPadding; i++)
-                    {
+                    for (int i = 0; i < BorderPadding; i++) {
                         BorderZone[x + i, y] = true;
                     }
                 }
@@ -107,21 +98,17 @@ public class BorderGenerator
         }
         // right border
         randBorderSize = Random.Range(MinBorderSize, MaxBorderSize + 1);
-        for (var y = 0; y < TerrainSizeY; y++)
-        {
+        for (var y = 0; y < TerrainSizeY; y++) {
             randBorderSize += Random.Range(-1, 2);
             if (randBorderSize < MinBorderSize) randBorderSize = MinBorderSize;
             if (randBorderSize > MaxBorderSize) randBorderSize = MaxBorderSize;
             BorderRight[y] = TerrainSizeX - randBorderSize;
-            for (var x = TerrainSizeX - randBorderSize - 1; x < TerrainSizeX; x++)
-            {
-                if (!BorderSafeZone[x, y])
-                {
-                    heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSizeX * Scale * 3 + OffsetX, (float)y / TerrainSizeY * Scale * 3 + OffsetY);
+            for (var x = TerrainSizeX - randBorderSize - 1; x < TerrainSizeX; x++) {
+                if (!BorderSafeZone[x, y]) {
+                    heights[y, x] += Mathf.PerlinNoise((float) x / TerrainSizeX * Scale * 3 + OffsetX, (float) y / TerrainSizeY * Scale * 3 + OffsetY);
                     BorderSafeZone[x, y] = true;
                     // populate border zone
-                    for (int i = 0; i < BorderPadding; i++)
-                    {
+                    for (int i = 0; i < BorderPadding; i++) {
                         BorderZone[x - i, y] = true;
                     }
                 }
@@ -130,23 +117,19 @@ public class BorderGenerator
         //top border
         randBorderSize = Random.Range(MinBorderSize, MaxBorderSize + 1);
         bool determinedCornerTopLeft = false;
-        for (var x = 0; x < TerrainSizeX; x++)
-        {
+        for (var x = 0; x < TerrainSizeX; x++) {
             randBorderSize += Random.Range(-1, 2);
             if (randBorderSize < MinBorderSize) randBorderSize = MinBorderSize;
             if (randBorderSize > MaxBorderSize) randBorderSize = MaxBorderSize;
             BorderTop[x] = randBorderSize;
-            for (var y = 0; y < randBorderSize; y++)
-            {
-                if (!BorderSafeZone[x, y])
-                {
-                    heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSizeX * Scale * 3 + OffsetX, (float)y / TerrainSizeY * Scale * 3 + OffsetY);
+            for (var y = 0; y < randBorderSize; y++) {
+                if (!BorderSafeZone[x, y]) {
+                    heights[y, x] += Mathf.PerlinNoise((float) x / TerrainSizeX * Scale * 3 + OffsetX, (float) y / TerrainSizeY * Scale * 3 + OffsetY);
                     BorderSafeZone[x, y] = true;
                     if (!determinedCornerTopLeft) { CornerTopLeft = new(x, randBorderSize); determinedCornerTopLeft = true; }
                     if (determinedCornerTopLeft) CornerTopRight = new(x, y);
                     // populate border zone
-                    for (int i = 0; i < BorderPadding; i++)
-                    {
+                    for (int i = 0; i < BorderPadding; i++) {
                         BorderZone[x, y + i] = true;
                     }
                 }
@@ -155,22 +138,18 @@ public class BorderGenerator
         // bottom border
         randBorderSize = Random.Range(MinBorderSize, MaxBorderSize + 1);
         bool determinedCornerBottomLeft = false;
-        for (var x = 0; x < TerrainSizeX; x++)
-        {
+        for (var x = 0; x < TerrainSizeX; x++) {
             randBorderSize += Random.Range(-1, 2);
             if (randBorderSize < MinBorderSize) randBorderSize = MinBorderSize;
             if (randBorderSize > MaxBorderSize) randBorderSize = MaxBorderSize;
             BorderBottom[x] = TerrainSizeX - randBorderSize;
-            for (var y = TerrainSizeY - randBorderSize - 1; y < TerrainSizeY; y++)
-            {
-                if (!BorderSafeZone[x, y])
-                {
-                    heights[y, x] += Mathf.PerlinNoise((float)x / TerrainSizeX * Scale * 3 + OffsetX, (float)y / TerrainSizeY * Scale * 3 + OffsetY);
+            for (var y = TerrainSizeY - randBorderSize - 1; y < TerrainSizeY; y++) {
+                if (!BorderSafeZone[x, y]) {
+                    heights[y, x] += Mathf.PerlinNoise((float) x / TerrainSizeX * Scale * 3 + OffsetX, (float) y / TerrainSizeY * Scale * 3 + OffsetY);
                     BorderSafeZone[x, y] = true;
                     if (!determinedCornerBottomLeft) { CornerBottomLeft = new(x, y); determinedCornerBottomLeft = true; }
                     if (determinedCornerBottomLeft) CornerBottomRight = new(x, y);
-                    for (int i = 0; i < BorderPadding; i++)
-                    {
+                    for (int i = 0; i < BorderPadding; i++) {
                         BorderZone[x, y - i] = true;
                     }
                 }
@@ -185,18 +164,14 @@ public class BorderGenerator
         // return terrainData;
     }
 
-    private void SmooothBorders(ref float[,] heights)
-    {
-        for (int n = 0; n < SmoothPasses; n++)
-        {
+    private void SmooothBorders(ref float[,] heights) {
+        for (int n = 0; n < SmoothPasses; n++) {
             //left border
-            for (int y = CornerTopLeft.y; y < CornerBottomLeft.y; y++)
-            {
+            for (int y = CornerTopLeft.y; y < CornerBottomLeft.y; y++) {
                 Vector2Int pos = new(BorderLeft[y], y);
                 heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, StrongerSmoothing);
                 // also smooth neighbours in radius
-                for (int i = 1; i <= SmoothRadius; i++)
-                {
+                for (int i = 1; i <= SmoothRadius; i++) {
                     pos = new(BorderLeft[y] - i, y);
                     if (pos.x > 0) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, StrongerSmoothing);
                     pos = new(BorderLeft[y] + i, y);
@@ -204,13 +179,11 @@ public class BorderGenerator
                 }
             }
             //right border
-            for (int y = CornerTopRight.y; y < CornerBottomRight.y; y++)
-            {
+            for (int y = CornerTopRight.y; y < CornerBottomRight.y; y++) {
                 Vector2Int pos = new(BorderRight[y], y);
                 heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, StrongerSmoothing);
 
-                for (int i = 1; i <= SmoothRadius; i++)
-                {
+                for (int i = 1; i <= SmoothRadius; i++) {
                     pos = new(BorderRight[y] - i, y);
                     if (pos.x > 0) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, StrongerSmoothing);
                     pos = new(BorderRight[y] + i, y);
@@ -218,13 +191,11 @@ public class BorderGenerator
                 }
             }
             //top border
-            for (int x = CornerTopLeft.x; x < CornerTopRight.x; x++)
-            {
+            for (int x = CornerTopLeft.x; x < CornerTopRight.x; x++) {
                 Vector2Int pos = new(x, BorderTop[x]);
                 heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, StrongerSmoothing);
 
-                for (int i = 1; i <= SmoothRadius; i++)
-                {
+                for (int i = 1; i <= SmoothRadius; i++) {
                     pos = new(x, BorderTop[x] - i);
                     if (pos.y > 0) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, StrongerSmoothing);
                     pos = new(x, BorderTop[x] + i);
@@ -232,13 +203,11 @@ public class BorderGenerator
                 }
             }
             //bottom border
-            for (int x = CornerBottomLeft.x; x < CornerBottomRight.x; x++)
-            {
+            for (int x = CornerBottomLeft.x; x < CornerBottomRight.x; x++) {
                 Vector2Int pos = new(x, BorderBottom[x]);
                 heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, StrongerSmoothing);
 
-                for (int i = 1; i <= SmoothRadius; i++)
-                {
+                for (int i = 1; i <= SmoothRadius; i++) {
                     pos = new(x, BorderBottom[x] - i);
                     if (pos.y > 0) heights[pos.y, pos.x] = GetSmoothedValue(pos, heights, StrongerSmoothing);
                     pos = new(x, BorderBottom[x] + i);
@@ -249,8 +218,7 @@ public class BorderGenerator
     }
 
     //TODO fix IndexOutOfBounds error
-    private float GetSmoothedValue(Vector2Int pos, float[,] heights, bool strongSmoothing)
-    {
+    private float GetSmoothedValue(Vector2Int pos, float[,] heights, bool strongSmoothing) {
         // calculate neighbours -> pos > 0 this works
         var heightTopLeft = heights[pos.y - 1, pos.x - 1];
         var heightTop = heights[pos.y - 1, pos.x];

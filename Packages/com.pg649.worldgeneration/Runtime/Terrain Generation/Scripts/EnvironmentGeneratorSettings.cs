@@ -1,8 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "EnvironmentGeneratorSettings", menuName = "PG649-WorldGeneration/Environment Generator Settings")]
-public class EnvironmentGeneratorSettings : ScriptableObject
-{
+public class EnvironmentGeneratorSettings : ScriptableObject {
     [Header("General settings")]
     [Space(10)]
     public bool UseRandomSeed = false;
