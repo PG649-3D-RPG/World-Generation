@@ -38,11 +38,17 @@ public class EnvironmentGeneratorBitmap {
             }
         }
 
-        AddNoise(heights);
-        heights = TerrainBlur.BlurCPU(heights, passes: 1, radius: 3);
-
+        // AddNoise(heights);
+        // heights = TerrainBlur.BlurCPU(heights, passes: 1, radius: 3);
+        // for (int i = 0; i < 1; i++) {
+        //     heights = TerrainBlur.ApplyBlur(heights, 5);
+        // }
         // SmoothAlongMask(heights);
         // AddNoise(heights);
+        // heights = TerrainBlur.ApplyBlur(heights, 5);
+        // for (int i = 0; i < 3; i++) {
+        //     heights = TerrainBlur.ApplyBlur(heights, 10);
+        // }
         terrain.terrainData.SetHeights(0, 0, heights);
         terrain.terrainData.size = new Vector3(size, DEPTH, size);
         // Terrain.Flush();

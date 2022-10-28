@@ -4,16 +4,151 @@ using System.Threading.Tasks;
 
 public class TerrainBlur {
 
-    private static double[,] GaussianKernel2D2x3(int d) {
-        double[,] kernel = new double[3, 3];
-
-        for (int x = 0; x < 3; x++) {
-            for (int y = 0; y < 3; y++) {
-                kernel[x, y] = (1 / (2 * MathF.PI * Math.Pow(d, 2))) * MathF.Exp(-(MathF.Pow(x, 2) + MathF.Pow(y, 2)) / (2 * MathF.Pow(d, 2)));
+    private static void NormalizeSquareMatrix(float[,] matrix) {
+        int size = matrix.GetLength(0);
+        float kernel_sum = 0f;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                kernel_sum += matrix[i, j];
             }
         }
 
+        if (kernel_sum != 0) {
+            // normalize kernel
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    matrix[i, j] /= kernel_sum;
+                }
+            }
+        }
+    }
+
+    private static float[,] GaussianKernel2D(int radius, float weigth = 5.5f) {
+        if (radius < 1) throw new ArgumentException("Dimension must be at least 1");
+        int size = 2 * radius + 1;
+        float[,] kernel = new float[size, size];
+
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                kernel[x, y] = (1 / (2 * MathF.PI * MathF.Pow(weigth, 2))) * MathF.Exp(-(MathF.Pow(x - radius, 2) + MathF.Pow(y - radius, 2)) / (2 * MathF.Pow(weigth, 2)));
+            }
+        }
+        NormalizeSquareMatrix(kernel);
+
         return kernel;
+    }
+
+    public static float[,] ApplyBlur(float[,] heights, int radius) {
+        int size = heights.GetLength(0);
+
+        float[,] blurred = new float[size, size];
+        float[,] kernel = GaussianKernel2D(radius: radius);
+        // float[,] kernel = { { 0.0585498f, 0.0965324f, 0.0585498f }, { 0.0965324f, 0.159155f, 0.0965324f }, { 0.0585498f, 0.0965324f, 0.0585498f } };
+
+        // float kernel_sum = 0f;
+        // for (int i = 0; i < 3; i++) {
+        //     for (int j = 0; j < 3; j++) {
+        //         kernel_sum += kernel[i, j];
+        //     }
+        // }
+
+        // // normalize kernel
+        // for (int i = 0; i < 3; i++) {
+        //     for (int j = 0; j < 3; j++) {
+        //         kernel[i, j] /= kernel_sum;
+        //     }
+        // }
+
+        // set all to mean
+        // for (int x = 1; x < size - 1; x++) {
+        //     for (int y = 1; y < size - 1; y++) {
+        //         float sum = 0;
+        //         sum += heights[x - 1, y - 1] * kernel[0, 0];
+        //         sum += heights[x, y - 1] * kernel[1, 0];
+        //         sum += heights[x + 1, y - 1] * kernel[2, 0];
+        //         sum += heights[x - 1, y] * kernel[0, 1];
+        //         sum += heights[x, y] * kernel[1, 1];
+        //         sum += heights[x + 1, y] * kernel[2, 1];
+        //         sum += heights[x - 1, y + 1] * kernel[0, 2];
+        //         sum += heights[x, y + 1] * kernel[1, 2];
+        //         sum += heights[x + 1, y - 1] * kernel[2, 2];
+        //         blurred[x, y] = sum;
+        //     }
+        // }
+
+        for (int x = 1 + radius; x < size - (1 + radius); x++) {
+            for (int y = 1 + radius; y < size - (1 + radius); y++) {
+                float sum = 0;
+                for (int r = 0; r < radius; r++) {
+                    sum += heights[x - (1 + r), y - (1 + r)] * kernel[0 + r, 0 + r];
+                    sum += heights[x + r, y - (1 + r)] * kernel[1 + r, 0 + r];
+                    sum += heights[x + 1 + r, y - (1 + r)] * kernel[2 + r, 0 + r];
+                    sum += heights[x - (1 + r), y + r] * kernel[0 + r, 1 + r];
+                    sum += heights[x + r, y + r] * kernel[1 + r, 1 + r];
+                    sum += heights[x + (1 + r), y + r] * kernel[2 + r, 1 + r];
+                    sum += heights[x - (1 + r), y + 1 + r] * kernel[0 + r, 2 + r];
+                    sum += heights[x + r, y + 1 + r] * kernel[1 + r, 2 + r];
+                    sum += heights[x + 1 + r, y + 1 + r] * kernel[2 + r, 2 + r];
+                }
+                blurred[x, y] = sum;
+            }
+        }
+        //normalize array to 1
+        float max_val = 0f;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (blurred[i, j] > max_val) max_val = blurred[i, j];
+            }
+        }
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                blurred[i, j] /= max_val;
+            }
+        }
+
+        return blurred;
+    }
+
+    public static float[,] ApplyBlurPar(float[,] heights, int radius) {
+        //TODO implement
+        int size = heights.GetLength(0);
+
+        float[,] blurred = new float[size, size];
+        float[,] kernel = GaussianKernel2D(radius: radius);
+
+        //linearize kernel and heights
+
+        for (int x = 1 + radius; x < size - (1 + radius); x++) {
+            for (int y = 1 + radius; y < size - (1 + radius); y++) {
+                float sum = 0;
+                for (int r = 0; r < radius; r++) {
+                    sum += heights[x - (1 + r), y - (1 + r)] * kernel[0 + r, 0 + r];
+                    sum += heights[x + r, y - (1 + r)] * kernel[1 + r, 0 + r];
+                    sum += heights[x + 1 + r, y - (1 + r)] * kernel[2 + r, 0 + r];
+                    sum += heights[x - (1 + r), y + r] * kernel[0 + r, 1 + r];
+                    sum += heights[x + r, y + r] * kernel[1 + r, 1 + r];
+                    sum += heights[x + (1 + r), y + r] * kernel[2 + r, 1 + r];
+                    sum += heights[x - (1 + r), y + 1 + r] * kernel[0 + r, 2 + r];
+                    sum += heights[x + r, y + 1 + r] * kernel[1 + r, 2 + r];
+                    sum += heights[x + 1 + r, y + 1 + r] * kernel[2 + r, 2 + r];
+                }
+                blurred[x, y] = sum;
+            }
+        }
+        //normalize array to 1
+        float max_val = 0f;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (blurred[i, j] > max_val) max_val = blurred[i, j];
+            }
+        }
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                blurred[i, j] /= max_val;
+            }
+        }
+
+        return blurred;
     }
 
 
