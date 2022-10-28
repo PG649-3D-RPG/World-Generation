@@ -38,7 +38,8 @@ public class EnvironmentGeneratorBitmap {
             }
         }
 
-        heights = TerrainBlur.BlurCPU(heights, 100);
+        AddNoise(heights);
+        heights = TerrainBlur.BlurCPU(heights, passes: 1, radius: 3);
 
         // SmoothAlongMask(heights);
         // AddNoise(heights);
@@ -69,7 +70,7 @@ public class EnvironmentGeneratorBitmap {
         }
         // Debug.Log(borderCoords.Count);
         // var smoothRadius = 3;
-        var smoothPasses = 20;
+        // var smoothPasses = 20;
         // for (int n = 0; n < smoothPasses; n++) {
         //     foreach (var (x, y) in borderCoords) {
         //         for (int i = 0; i < smoothRadius; i++) {
@@ -93,18 +94,18 @@ public class EnvironmentGeneratorBitmap {
         //             }
         //         }
         //     }
-        // }
-        for (int n = 0; n < smoothPasses; n++) {
-            for (int y = 1; y < size - 1; y++) {
-                for (int x = 1; x < size - 1; x++) {
-                    // smooth any position
-                    //TODO only consider edges of rooms
-                    heights[y, x] = Mathf.Clamp01(GetSmoothedValue(x, y, heights, true));
-                    heights[y, x] = Mathf.Clamp01(GetSmoothedValue(x, y, heights, true));
+        // // }
+        // for (int n = 0; n < smoothPasses; n++) {
+        //     for (int y = 1; y < size - 1; y++) {
+        //         for (int x = 1; x < size - 1; x++) {
+        //             // smooth any position
+        //             //TODO only consider edges of rooms
+        //             heights[y, x] = Mathf.Clamp01(GetSmoothedValue(x, y, heights, true));
+        //             heights[y, x] = Mathf.Clamp01(GetSmoothedValue(x, y, heights, true));
 
-                }
-            }
-        }
+        //         }
+        //     }
+        // }
     }
 
     public void AddNoise(float[,] heights) {

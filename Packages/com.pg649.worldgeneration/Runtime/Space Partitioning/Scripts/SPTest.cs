@@ -1,6 +1,6 @@
-using UnityEngine;
 using System;
 using System.IO;
+using UnityEngine;
 
 public class Generate2DDungeon : MonoBehaviour
 {
@@ -55,17 +55,22 @@ public class Generate2DDungeon : MonoBehaviour
         dTree.Root.Node.MinMaxMargin = minMaxMargin;
         dTree.PlaceRooms(roomPlacementProbability, quadraticTerrain : quadraticTerrain, quadraticTerrainMin : divideMin, quadraticTerrainMax : divideMax);
         dTree.PlaceCorridors(minCorridorWidth, maxCorridorWidth, minCorridorHeight, maxCorridorHeight, maxDistance : maxDistance);
-        dTree.ToGameObject(terrain : useTerrains);
+        //dTree.ToGameObject(terrain : useTerrains);
+        var a = dTree.ToBoolArray();
+
+        EnvironmentGeneratorBitmap generator = new EnvironmentGeneratorBitmap(a);
+        generator.Build();
+
         if(createTexture){
             Texture2D t = dTree.ToTexture();
             byte[] bytes = ImageConversion.EncodeArrayToPNG(t.GetRawTextureData(), t.graphicsFormat, (uint)t.width, (uint)t.height);
             File.WriteAllBytes(Application.dataPath + "/dungeon.png", bytes);
-        } 
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }
