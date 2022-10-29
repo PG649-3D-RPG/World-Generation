@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class EnvironmentGeneratorBitmap {
+    private readonly EnvironmentGeneratorBitmapSettings gen_settings;
+
     private readonly bool[,] heightmapMask;
     private readonly int size;
-    private const float DEPTH = 100;
-    private const float AMPLITUDE = .8f;
-    private const float FREQUENCY = 192f;
+
     private Terrain terrain;
 
-    public EnvironmentGeneratorBitmap(bool[,] mask) {
+    public EnvironmentGeneratorBitmap(bool[,] mask, EnvironmentGeneratorBitmapSettings settings) {
+        gen_settings = settings;
         heightmapMask = mask;
         size = mask.GetLength(0);
         if (!IsPowerOfTwo(size)) throw new System.ArgumentException("TerrainSize must be a power of 2");
@@ -44,8 +45,8 @@ public class EnvironmentGeneratorBitmap {
 
         sw.Start();
 
-        for (int i = 0; i < 10; i++) {
-            heights = TerrainBlur.GaussianBlurParCPU(heights, 10);
+        for (int i = 0; i < gen_settings.BlurringPasses; i++) {
+            heights = TerrainBlur.GaussianBlurParCPU(heights, gen_settings.BlurRadius);
         }
 
         sw.Stop();
@@ -59,7 +60,7 @@ public class EnvironmentGeneratorBitmap {
         //     heights = TerrainBlur.ApplyBlur(heights, 10);
         // }
         terrain.terrainData.SetHeights(0, 0, heights);
-        terrain.terrainData.size = new Vector3(size, DEPTH, size);
+        terrain.terrainData.size = new Vector3(size, gen_settings.Depth, size);
         // Terrain.Flush();
         // Terrain.terrainData.size = new Vector3(settings.TerrainSize, settings.Depth, settings.TerrainSize);
 
@@ -126,7 +127,7 @@ public class EnvironmentGeneratorBitmap {
     public void AddNoise(float[,] heights) {
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
-                heights[y, x] += Mathf.Clamp01(Mathf.PerlinNoise(y / FREQUENCY, x / FREQUENCY) * AMPLITUDE);
+                heights[y, x] += Mathf.Clamp01(Mathf.PerlinNoise(y / gen_settings.FREQUENCY, x / gen_settings.FREQUENCY) * gen_settings.AMPLITUDE);
             }
         }
     }

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class EnvironmentGeneratorEditor : MonoBehaviour {
     private EnvironmentGeneratorBitmap generator;
-    public EnvironmentGeneratorSettings GeneratorSettings;
+    public EnvironmentGeneratorBitmapSettings GeneratorSettings;
 
     public void Build() {
         int size = 2048;
@@ -24,13 +24,13 @@ public class EnvironmentGeneratorEditor : MonoBehaviour {
             }
         }
 
-        generator = new EnvironmentGeneratorBitmap(bitmap);
+        generator = new EnvironmentGeneratorBitmap(bitmap, GeneratorSettings);
         generator.Build();
     }
-    public void ShowZone(ZONES zone) {
-        // generator.ShowZone(zone);
-    }
-    public void RemoveZone(ZONES zone) {
-        // generator.RemoveZone(zone);
-    }
+    // public void ShowZone(ZONES zone) {
+    //     // generator.ShowZone(zone);
+    // }
+    // public void RemoveZone(ZONES zone) {
+    //     // generator.RemoveZone(zone);
+    // }
 }

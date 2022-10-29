@@ -32,6 +32,7 @@ public class Generate2DDungeon : MonoBehaviour
     public float maxDistance = 32;
     [Header("Other")]
     public bool createTexture = false;
+    public EnvironmentGeneratorBitmapSettings environmentGeneratorSettings;
     void Start()
     {
         int[] size = new int[] {width,depth};
@@ -58,7 +59,7 @@ public class Generate2DDungeon : MonoBehaviour
         //dTree.ToGameObject(terrain : useTerrains);
         var a = dTree.ToBoolArray();
 
-        EnvironmentGeneratorBitmap generator = new EnvironmentGeneratorBitmap(a);
+        EnvironmentGeneratorBitmap generator = new EnvironmentGeneratorBitmap(a, environmentGeneratorSettings);
         generator.Build();
 
         if(createTexture){
