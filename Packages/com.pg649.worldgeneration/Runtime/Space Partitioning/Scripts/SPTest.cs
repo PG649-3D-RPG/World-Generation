@@ -19,11 +19,11 @@ public class Generate2DDungeon : MonoBehaviour
     public int frontBackMinMargin = 1;
     public int frontBackMaxMargin = 5;
     public int roomPlacementProbability = 100;
-    public bool useTerrains = false;
-    [Header("QuadTree quadratic terrain options")]
-    public bool quadraticTerrain = false;
-    public int divideMin = 1;
-    public int divideMax = 2;
+    // public bool useTerrains = false;
+    // [Header("QuadTree quadratic terrain options")]
+    // public bool quadraticTerrain = false;
+    // public int divideMin = 1;
+    // public int divideMax = 2;
     [Header("Corridors")]
     public int minCorridorWidth = 1;
     public int maxCorridorWidth = 1;
@@ -54,14 +54,13 @@ public class Generate2DDungeon : MonoBehaviour
         DungeonTreeT dTree = new DungeonTreeT(spTree);
         dTree.Root.Node.FHeight = DungeonTreeNode.fHeight2DMinMax(3,4);
         dTree.Root.Node.MinMaxMargin = minMaxMargin;
-        dTree.PlaceRooms(roomPlacementProbability, quadraticTerrain : quadraticTerrain, quadraticTerrainMin : divideMin, quadraticTerrainMax : divideMax);
+        dTree.PlaceRooms(roomPlacementProbability);//, quadraticTerrain : quadraticTerrain, quadraticTerrainMin : divideMin, quadraticTerrainMax : divideMax);
         dTree.PlaceCorridors(minCorridorWidth, maxCorridorWidth, minCorridorHeight, maxCorridorHeight, maxDistance : maxDistance);
-        //dTree.ToGameObject(terrain : useTerrains);
-        var a = dTree.ToBoolArray();
+        //dTree.ToGameObject();
+        bool[,] a = dTree.ToBoolArray();
 
         EnvironmentGeneratorBitmap generator = new EnvironmentGeneratorBitmap(a, environmentGeneratorSettings);
         generator.Build();
-
         if(createTexture){
             Texture2D t = dTree.ToTexture();
             byte[] bytes = ImageConversion.EncodeArrayToPNG(t.GetRawTextureData(), t.graphicsFormat, (uint)t.width, (uint)t.height);

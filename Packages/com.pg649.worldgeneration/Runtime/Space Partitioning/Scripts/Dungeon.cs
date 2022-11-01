@@ -6,7 +6,7 @@ using UnityEngine;
 public class DungeonTreeMeta : MonoBehaviour{
     public int[] partitionSize;
     public int[] point;
-    public Vector3 roomPoint;
+    public Vector3Int roomPoint;
     public int northRooms,eastRooms,southRooms,westRooms;
     public DungeonTreeMeta(){
 
@@ -24,7 +24,7 @@ public class DungeonTreeMeta : MonoBehaviour{
         this.partitionSize = size;
         this.point = point;
     }
-    public Vector3 RoomPoint{
+    public Vector3Int RoomPoint{
         get{return roomPoint;}
         set{roomPoint = value;}
     }
@@ -135,7 +135,7 @@ public class DungeonRoom : IGameObjectable{
         }
     }
 
-    public Vector3 RoomPoint{
+    public Vector3Int RoomPoint{
         get{return roomPoint;}
     }
     public Vector3 UpperLeftPoint{
@@ -180,22 +180,25 @@ public class DungeonRoomMeta : MonoBehaviour{
 
 
 public class DungeonCorridor : IGameObjectable {
-    private List<Vector3> path;
+    private List<Vector3Int> path;
     private int width;
     private float height;
     public DungeonRoom startRoom, endRoom;
     public DungeonRoom.Face startFace, endFace;
     private int startIndex, endIndex;
+    public Vector3Int partitionPoint;
 
     public DungeonCorridor(){
-        path = new List<Vector3>();
+        path = new List<Vector3Int>();
     }
 
     public GameObject ToGameObject(){
         GameObject go = new GameObject("DungeonCorridor");
         DungeonCorridorMeta dcm = go.AddComponent<DungeonCorridorMeta>();
         dcm.SetValues(this);
-        MeshGeneration.CorridorGround(path,width).transform.parent = go.transform;
+        List<Vector3> l = new List<Vector3>();
+        foreach(Vector3Int v in path) l.Add(new Vector3(v.x,v.y,v.z));
+        MeshGeneration.CorridorGround(l,width).transform.parent = go.transform;
         return go;
     }
 
@@ -208,10 +211,32 @@ public class DungeonCorridor : IGameObjectable {
     }
 
     public void ApplyToBoolArray(bool[,] m){
-        
+        Vector3Int p = path[0];
+        int i = 0;
+        while(i != path.Count-1){
+            Vector3Int dir = (path[i+1]-path[i]);
+            if(dir.magnitude > 0) dir = dir/(int)dir.magnitude;
+            for(int j = 0; j < width; j++){
+                if(dir == Vector3.left || dir == Vector3.right){
+                    m[partitionPoint.x + p.x, partitionPoint.z +p.z + j] = true;
+                }
+                else{
+                    m[partitionPoint.x + p.x + j, partitionPoint.z +p.z] = true;
+                }
+            }
+            p += dir;
+            if(p == path[i+1]){
+                Vector3Int nextDir = i < path.Count-2 ? (path[i+2]-path[i+1]) : Vector3Int.zero;
+                if(nextDir.magnitude > 0) nextDir = nextDir/(int)nextDir.magnitude;
+                if((dir == Vector3Int.right &&  nextDir == Vector3Int.back) || (dir == Vector3Int.forward && nextDir == Vector3.left)){
+                    p += (-nextDir)*(width-1);
+                }
+                i += 1;
+            }
+        }
     }
 
-    public List<Vector3> Path{
+    public List<Vector3Int> Path{
         get{return path;}
         set{path = value;}
     }
@@ -247,13 +272,17 @@ public class DungeonCorridor : IGameObjectable {
         get{return endIndex;}
         set{endIndex = value;}
     }
+    public Vector3Int PartitionPoint{
+        get{return partitionPoint;}
+        set{partitionPoint = value;}
+    }
 }
 class DungeonCorridorMeta : MonoBehaviour{
-    public List<Vector3> path;
+    public List<Vector3Int> path;
     public float length;
     public DungeonCorridorMeta(){
     }
-    public void SetValues(List<Vector3> path){
+    public void SetValues(List<Vector3Int> path){
         this.path = path;
     }
     public void SetValues(DungeonCorridor c){
@@ -307,8 +336,8 @@ public class DungeonTreeNode : SPTreeNode{
         return x => MathF.Min(MathF.Max(min, x.Size[0]+x.Size[1]*scale), max);
     }   
 
-    public Vector3 PointV{
-        get{return point.Length == 2 ? new Vector3(point[0], 0 , point[1]) : new Vector3(point[0], point[2], point[1]);}
+    public Vector3Int PointV{
+        get{return point.Length == 2 ? new Vector3Int(point[0], 0 , point[1]) : new Vector3Int(point[0], point[2], point[1]);}
     }
     public Tuple<int,int>[] MinMaxMargin{
     get{ return minMaxMargin;}
@@ -490,7 +519,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         int width = node.Rand.Next(minWidth, maxWidth+1);
         float height = (float)node.Rand.NextDouble()*(maxHeight-minHeight)+minHeight;
         if((node.Size[0] == children[0].Node.Size[0] && children[0].Node.RoomsNorth.Count > 0 && children[1].Node.RoomsSouth.Count > 0) || node.Size[1] == children[0].Node.Size[1] && children[0].Node.RoomsEast.Count > 0 && children[1].Node.RoomsWest.Count > 0){
-            Vector3 start,mid,mid2,end;
+            Vector3Int start,mid,mid2,end;
             DungeonRoom startRoom, endRoom;
             DungeonRoom.Face startFace, endFace;
             DungeonCorridor corridor = new DungeonCorridor();
@@ -500,20 +529,18 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                 int cri2 = FindConnectingRoom(startRoom.UpperLeftPoint, children[1].Node.RoomsSouth, DungeonRoom.Face.Front, maxDistance);
                 endRoom = children[1].Node.RoomsSouth[cri2];
                 int startPointIndex = node.Rand.Next(0,startRoom.Width - width+1);
-                float startPoint = startPointIndex + ((float)width/2);
                 int endPointIndex = node.Rand.Next(0,endRoom.Width - width+1);
-                float endPoint = endPointIndex + ((float)width/2);
                 corridor.StartIndex = startPointIndex;
                 corridor.EndIndex = endPointIndex;
-                start = startRoom.RoomPoint - node.PointV + new Vector3(startPoint,0,startRoom.Depth);
-                mid = new Vector3(start.x,start.y, children[0].Node.Size[1]);
-                end = endRoom.RoomPoint - node.PointV + new Vector3(endPoint,0,0);
-                mid2 = new Vector3(end.x,end.y, children[0].Node.Size[1]);
+                start = startRoom.RoomPoint - node.PointV + new Vector3Int(startPointIndex,0,startRoom.Depth);
+                mid = new Vector3Int(start.x,start.y, children[0].Node.Size[1]);
+                end = endRoom.RoomPoint - node.PointV + new Vector3Int(endPointIndex,0,0);
+                mid2 = new Vector3Int(end.x,end.y, children[0].Node.Size[1]);
                 startFace = DungeonRoom.Face.Back;
                 endFace = DungeonRoom.Face.Front;
                 startRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(startFace, startPointIndex, width));
                 endRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(endFace, endPointIndex,width));
-            }   
+            }
             else{
                 int cri1 = node.Rand.Next(0,children[0].Node.RoomsEast.Count);
                 startRoom = children[0].Node.RoomsEast[cri1];
@@ -521,29 +548,30 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                 int cri2 = FindConnectingRoom(startRoom.LowerRightPoint, children[1].Node.RoomsWest, DungeonRoom.Face.Left, maxDistance);
                 endRoom = children[1].Node.RoomsWest[cri2];
                 int startPointIndex = node.Rand.Next(0,startRoom.Depth - width+1);
-                float startPoint = startPointIndex + ((float)width/2);
+                float startPoint = startPointIndex;// + ((float)width/2);
                 //float startPoint = (float)node.Rand.NextDouble() * ((startRoom.Depth - width) - width) + width;
                 //float endPoint = (float)node.Rand.NextDouble() * ((endRoom.Depth - width) - width) + width; 
                 int endPointIndex = node.Rand.Next(0,endRoom.Depth - width+1);
-                float endPoint = endPointIndex + ((float)width/2);
+                float endPoint = endPointIndex;// + ((float)width/2);
                 corridor.StartIndex = startPointIndex;
                 corridor.EndIndex = endPointIndex;
-                start = startRoom.RoomPoint - node.PointV + new Vector3(startRoom.Width,0,startPoint);
-                mid = new Vector3(children[0].Node.Size[0],start.y, start.z);
-                end = endRoom.RoomPoint - node.PointV + new Vector3(0,0,endPoint);
-                mid2 = new Vector3(children[0].Node.Size[0],end.y, end.z);
+                start = startRoom.RoomPoint - node.PointV + new Vector3Int(startRoom.Width,0,startPointIndex);
+                mid = new Vector3Int(children[0].Node.Size[0],start.y, start.z);
+                end = endRoom.RoomPoint - node.PointV + new Vector3Int(0,0,endPointIndex);
+                mid2 = new Vector3Int(children[0].Node.Size[0],end.y, end.z);
                 startFace = DungeonRoom.Face.Right;
                 endFace = DungeonRoom.Face.Left;
                 startRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(startFace, startPointIndex,width));
                 endRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(endFace, endPointIndex,width));
             }
+            corridor.PartitionPoint = node.PointV;
             corridor.StartRoom = startRoom;
             corridor.StartRoom = endRoom;
             corridor.StartFace = startFace;
             corridor.EndFace = endFace;
             corridor.Width = width;
             corridor.Height = height;
-            corridor.Path = new List<Vector3>(){start,mid,mid2,end};
+            corridor.Path = new List<Vector3Int>(){start,mid,mid2,end};
             node.Corridors.Add(corridor);
         }
     }
@@ -557,12 +585,12 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.EndRoom = children[1].Node.RoomsWest[node.Rand.Next(0,children[1].Node.RoomsWest.Count)];
             corridor.StartIndex = node.Rand.Next(0,corridor.StartRoom.Depth-width+1);
             corridor.EndIndex = node.Rand.Next(0,corridor.EndRoom.Depth-width+1);
-            Vector3 start = corridor.StartRoom.RoomPoint - node.PointV + new Vector3(corridor.StartRoom.Width,0,corridor.StartIndex+((float)width/2));
+            Vector3Int start = corridor.StartRoom.RoomPoint - node.PointV + new Vector3Int(corridor.StartRoom.Width,0,corridor.StartIndex);
             corridor.Path.Add(start);
-            Vector3 end = corridor.EndRoom.RoomPoint - node.PointV + new Vector3(0,0,corridor.EndIndex+((float)width/2));
+            Vector3Int end = corridor.EndRoom.RoomPoint - node.PointV + new Vector3Int(0,0,corridor.EndIndex);
             if(start.z != end.z){
-                Vector3 mid = new Vector3(children[0].Node.Size[0],start.y, start.z);
-                Vector3 mid2 = new Vector3(children[0].Node.Size[0], end.y, end.z);
+                Vector3Int mid = new Vector3Int(children[0].Node.Size[0],start.y, start.z);
+                Vector3Int mid2 = new Vector3Int(children[0].Node.Size[0], end.y, end.z);
                 corridor.Path.Add(mid);
                 corridor.Path.Add(mid2);
             }
@@ -571,6 +599,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.Height = height;
             corridor.StartFace = DungeonRoom.Face.Right;
             corridor.EndFace = DungeonRoom.Face.Left;
+            corridor.PartitionPoint = node.PointV;
             node.Corridors.Add(corridor);
         }
         if(children[1].Node.RoomsNorth.Count > 0 && children[3].Node.RoomsSouth.Count > 0){
@@ -581,12 +610,12 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.EndRoom = children[3].Node.RoomsSouth[node.Rand.Next(0,children[3].Node.RoomsSouth.Count)];
             corridor.StartIndex = node.Rand.Next(0,corridor.StartRoom.Width-width+1);
             corridor.EndIndex = node.Rand.Next(0,corridor.EndRoom.Width-width+1);
-            Vector3 start = corridor.StartRoom.RoomPoint - node.PointV + new Vector3(corridor.StartIndex+((float)width/2),0,corridor.StartRoom.Depth);
+            Vector3Int start = corridor.StartRoom.RoomPoint - node.PointV + new Vector3Int(corridor.StartIndex,0,corridor.StartRoom.Depth);
             corridor.Path.Add(start);
-            Vector3 end = corridor.EndRoom.RoomPoint - node.PointV + new Vector3(corridor.EndIndex+((float)width/2),0,0);
+            Vector3Int end = corridor.EndRoom.RoomPoint - node.PointV + new Vector3Int(corridor.EndIndex,0,0);
             if(start.z != end.z){
-                Vector3 mid = new Vector3(start.x,start.y, children[1].Node.Size[1]);
-                Vector3 mid2 = new Vector3(end.x, end.y, children[1].Node.Size[1]);
+                Vector3Int mid = new Vector3Int(start.x,start.y, children[1].Node.Size[1]);
+                Vector3Int mid2 = new Vector3Int(end.x, end.y, children[1].Node.Size[1]);
                 corridor.Path.Add(mid);
                 corridor.Path.Add(mid2);
             }
@@ -595,6 +624,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.Height = height;
             corridor.StartFace = DungeonRoom.Face.Top;
             corridor.EndFace = DungeonRoom.Face.Bottom;
+            corridor.PartitionPoint = node.PointV;
             node.Corridors.Add(corridor);
         }
         if(children[2].Node.RoomsEast.Count > 0 && children[3].Node.RoomsWest.Count > 0){
@@ -605,12 +635,12 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.EndRoom = children[3].Node.RoomsWest[node.Rand.Next(0,children[3].Node.RoomsWest.Count)];
             corridor.StartIndex = node.Rand.Next(0,corridor.StartRoom.Depth-width+1);
             corridor.EndIndex = node.Rand.Next(0,corridor.EndRoom.Depth-width+1);
-            Vector3 start = corridor.StartRoom.RoomPoint - node.PointV + new Vector3(corridor.StartRoom.Width,0,corridor.StartIndex+((float)width/2));
+            Vector3Int start = corridor.StartRoom.RoomPoint - node.PointV + new Vector3Int(corridor.StartRoom.Width,0,corridor.StartIndex);
             corridor.Path.Add(start);
-            Vector3 end = corridor.EndRoom.RoomPoint - node.PointV + new Vector3(0,0,corridor.EndIndex+((float)width/2));
+            Vector3Int end = corridor.EndRoom.RoomPoint - node.PointV + new Vector3Int(0,0,corridor.EndIndex);
             if(start.z != end.z){
-                Vector3 mid = new Vector3(children[0].Node.Size[0],start.y, start.z);
-                Vector3 mid2 = new Vector3(children[0].Node.Size[0], end.y, end.z);
+                Vector3Int mid = new Vector3Int(children[0].Node.Size[0],start.y, start.z);
+                Vector3Int mid2 = new Vector3Int(children[0].Node.Size[0], end.y, end.z);
                 corridor.Path.Add(mid);
                 corridor.Path.Add(mid2);
             }
@@ -619,6 +649,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.Height = height;
             corridor.StartFace = DungeonRoom.Face.Right;
             corridor.EndFace = DungeonRoom.Face.Left;
+            corridor.PartitionPoint = node.PointV;
             node.Corridors.Add(corridor);
         }
         if(children[0].Node.RoomsNorth.Count > 0 && children[2].Node.RoomsSouth.Count > 0){
@@ -629,12 +660,12 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.EndRoom = children[2].Node.RoomsSouth[node.Rand.Next(0,children[2].Node.RoomsSouth.Count)];
             corridor.StartIndex = node.Rand.Next(0,corridor.StartRoom.Width-width+1);
             corridor.EndIndex = node.Rand.Next(0,corridor.EndRoom.Width-width+1);
-            Vector3 start = corridor.StartRoom.RoomPoint - node.PointV + new Vector3(corridor.StartIndex+((float)width/2),0,corridor.StartRoom.Depth);
+            Vector3Int start = corridor.StartRoom.RoomPoint - node.PointV + new Vector3Int(corridor.StartIndex,0,corridor.StartRoom.Depth);
             corridor.Path.Add(start);
-            Vector3 end = corridor.EndRoom.RoomPoint - node.PointV + new Vector3(corridor.EndIndex+((float)width/2),0,0);
+            Vector3Int end = corridor.EndRoom.RoomPoint - node.PointV + new Vector3Int(corridor.EndIndex,0,0);
             if(start.z != end.z){
-                Vector3 mid = new Vector3(start.x,start.y, children[1].Node.Size[1]);
-                Vector3 mid2 = new Vector3(end.x, end.y, children[1].Node.Size[1]);
+                Vector3Int mid = new Vector3Int(start.x,start.y, children[1].Node.Size[1]);
+                Vector3Int mid2 = new Vector3Int(end.x, end.y, children[1].Node.Size[1]);
                 corridor.Path.Add(mid);
                 corridor.Path.Add(mid2);
             }
@@ -643,6 +674,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.Height = height;
             corridor.StartFace = DungeonRoom.Face.Top;
             corridor.EndFace = DungeonRoom.Face.Bottom;
+            corridor.PartitionPoint = node.PointV;
             node.Corridors.Add(corridor);
         }
     }
