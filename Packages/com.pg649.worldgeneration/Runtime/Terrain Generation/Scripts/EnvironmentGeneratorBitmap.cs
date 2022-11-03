@@ -39,8 +39,6 @@ public class EnvironmentGeneratorBitmap {
             }
         }
 
-        AddNoise(heights);
-
         System.Diagnostics.Stopwatch sw = new();
 
         sw.Start();
@@ -52,6 +50,11 @@ public class EnvironmentGeneratorBitmap {
         sw.Stop();
 
         Debug.Log(sw.Elapsed);
+        AddNoise(heights);
+
+
+        // heights = TerrainTransforms.Twirl(heights, 1f);
+
 
         // SmoothAlongMask(heights);
         // AddNoise(heights);

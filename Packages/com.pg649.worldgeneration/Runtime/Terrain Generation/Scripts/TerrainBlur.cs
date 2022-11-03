@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-public class TerrainBlur {
+public static class TerrainBlur {
 
     private static void NormalizeSquareMatrix(float[,] matrix) {
         int size = matrix.GetLength(0);

@@ -16,4 +16,4 @@ MonoBehaviour:
   AMPLITUDE: 0.8
   FREQUENCY: 192
   BlurringPasses: 1
-  BlurRadius: 10
+  BlurRadius: 3
