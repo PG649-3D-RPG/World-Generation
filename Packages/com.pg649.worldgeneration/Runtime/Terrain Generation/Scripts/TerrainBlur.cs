@@ -65,8 +65,17 @@ public static class TerrainBlur {
 
             for (int k0 = 0; k0 < dim; k0++) {
                 for (int k1 = 0; k1 < dim; k1++) {
-                    if ((row - radius + k0) < 0 || (col - radius + k1) < 0 || (row - radius + k0) >= size || (col - radius + k1) >= size) continue;
-                    sum += heights[(row - radius + k0), (col - radius + k1)] * kernel[k0, k1];
+                    int curX = (row - radius + k0);
+                    int curY = (col - radius + k1);
+                    if (curX < 0 && curY < 0) sum += heights[0, 0] * kernel[k0, k1];
+                    else if (curX >= size && curY >= size) sum += heights[size - 1, size - 1] * kernel[k0, k1];
+                    else if (curX < 0 && curY >= size) sum += heights[0, size - 1] * kernel[k0, k1];
+                    else if (curX >= size && curY < 0) sum += heights[size - 1, 0] * kernel[k0, k1];
+                    else if (curX < 0) sum += heights[0, curY] * kernel[k0, k1];
+                    else if (curY < 0) sum += heights[curX, 0] * kernel[k0, k1];
+                    else if (curX >= size) sum += heights[size - 1, curY] * kernel[k0, k1];
+                    else if (curY >= size) sum += heights[curX, size - 1] * kernel[k0, k1];
+                    else sum += heights[curX, curY] * kernel[k0, k1];
                 }
             }
             blurred[i] = sum;
