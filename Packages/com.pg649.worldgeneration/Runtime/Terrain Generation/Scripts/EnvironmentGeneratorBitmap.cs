@@ -31,15 +31,18 @@ public class EnvironmentGeneratorBitmap {
         terrain.terrainData.heightmapResolution = size + 1;
         var heights = new float[size, size];
 
+        bool[,] ivbm = HeightmapTransforms.MaskInvertedBorder(heightmapMask, 6);
+
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
-                heights[y, x] = heightmapMask[y, x] ? 0f : 1f;
+                heights[y, x] = heightmapMask[y, x] ? 0f : .8f;
+                if(ivbm[y,x]) heights[y, x] = 0.5f;
                 // heights[y, x] = heightmapMask[y, x] ? Mathf.Clamp01(Mathf.PerlinNoise(y / FREQUENCY, x / FREQUENCY) * AMPLITUDE) : 1f;
                 // heights[y, x] += Mathf.Clamp01(Mathf.PerlinNoise(y / FREQUENCY, x / FREQUENCY) * AMPLITUDE);
             }
         }
 
-        System.Diagnostics.Stopwatch sw = new();
+        /*System.Diagnostics.Stopwatch sw = new();
 
         sw.Start();
 
@@ -51,14 +54,20 @@ public class EnvironmentGeneratorBitmap {
 
         Debug.Log(sw.Elapsed);
         AddNoise(heights);
+*/
+        for(int i = 0; i < 5; i++) HeightmapTransforms.ApplyFilter(heights, HeightmapTransforms.AverageFilter(3,3), heightmapMask, invertMask : true);
 
+        HeightmapTransforms.ApplyPerlinNoise(heights, maxAddedHeight : .4f, mask : heightmapMask);
+        HeightmapTransforms.ApplyPerlinNoise(heights, maxAddedHeight : .4f, scale : .6f, mask : ivbm);
+        HeightmapTransforms.ApplyPerlinNoise(heights, maxAddedHeight : .1f, scale : .4f, mask : heightmapMask.ZipMap(ivbm, (x,y) => !x && !y));
+       
 
-        // heights = TerrainTransforms.Twirl(heights, 1f);
+        //heights = TerrainTransforms.Twirl(heights, 1f);
 
 
         // SmoothAlongMask(heights);
-        // AddNoise(heights);
-        // heights = TerrainBlur.ApplyBlur(heights, 5);
+        //AddNoise(heights);
+        //heights = TerrainBlur.ApplyBlur(heights, 5);
         // for (int i = 0; i < 3; i++) {
         //     heights = TerrainBlur.ApplyBlur(heights, 10);
         // }

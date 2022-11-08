@@ -164,11 +164,7 @@ MonoBehaviour:
   frontBackMinMargin: 11
   frontBackMaxMargin: 16
   roomPlacementProbability: 60
-  useTerrains: 0
-  quadraticTerrain: 0
-  divideMin: 1
-  divideMax: 1
-  minCorridorWidth: 4
+  minCorridorWidth: 6
   maxCorridorWidth: 10
   minCorridorHeight: 2
   maxCorridorHeight: 3

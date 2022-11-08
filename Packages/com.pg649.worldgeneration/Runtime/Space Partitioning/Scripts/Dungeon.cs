@@ -56,10 +56,17 @@ public class DungeonRoom : IGameObjectable{
     }
     public DungeonRoom(IEnumerable<int> x, Vector3Int roomPoint, System.Random rand = null) : this(x.ToArray()[0],x.ToArray()[1],x.ToArray()[2], roomPoint, rand : rand){}
 
+    private void freePathDirection(Vector3Int start, Vector3Int Vector3Int){
+        
+    }
+
     //doesnt work if both points are on the same boundary
     public void SetFreePath(Face f1, Face f2, float p1, float p2){
-        if((f1 == Face.Left || f1 == Face.Right) && (f1 == Face.Left || f2 == Face.Right)){
+        if((f1 == Face.Left || f1 == Face.Right) && (f2 == Face.Left || f2 == Face.Right)){
             
+        }
+        else if((f1 == Face.Left || f1 == Face.Right) && (f2 == Face.Back || f1 == Face.Front)){
+
         }
         else if(true){}
     }
