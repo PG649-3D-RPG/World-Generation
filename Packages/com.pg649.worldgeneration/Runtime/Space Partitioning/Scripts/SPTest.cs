@@ -59,10 +59,14 @@ public class Generate2DDungeon : MonoBehaviour
         //dTree.ToGameObject();
         bool[,] a = dTree.ToBoolArray();
 
+        Texture2D tt = dTree.ToTexture(dTree.RoomsFreeMask());
+        byte[] bytess = ImageConversion.EncodeArrayToPNG(tt.GetRawTextureData(), tt.graphicsFormat, (uint)tt.width, (uint)tt.height);
+        File.WriteAllBytes(Application.dataPath + "/test.png", bytess);
+        
         EnvironmentGeneratorBitmap generator = new EnvironmentGeneratorBitmap(a, environmentGeneratorSettings);
         generator.Build();
         if(createTexture){
-            Texture2D t = dTree.ToTexture();
+            Texture2D t = dTree.ToTexture(a);
             byte[] bytes = ImageConversion.EncodeArrayToPNG(t.GetRawTextureData(), t.graphicsFormat, (uint)t.width, (uint)t.height);
             File.WriteAllBytes(Application.dataPath + "/dungeon.png", bytes);
         }

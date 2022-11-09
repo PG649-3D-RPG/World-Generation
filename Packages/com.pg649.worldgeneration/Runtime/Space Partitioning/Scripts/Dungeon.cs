@@ -38,6 +38,7 @@ public class DungeonRoom : IGameObjectable{
     private bool[,] free;
     private System.Random rand;
     private Vector3Int roomPoint;
+    private int type;
 
 
     public enum Face{
@@ -51,27 +52,87 @@ public class DungeonRoom : IGameObjectable{
         this.height = height;
         this.roomPoint = roomPoint;
         free = new bool[width,depth];
-        rand = rand ?? new System.Random();
+        free.Map<bool>(x => true);
+        rand ??= new System.Random();
         corridorPoints = new List<Tuple<Face,int,int>>();
+        this.type = -1;
     }
     public DungeonRoom(IEnumerable<int> x, Vector3Int roomPoint, System.Random rand = null) : this(x.ToArray()[0],x.ToArray()[1],x.ToArray()[2], roomPoint, rand : rand){}
 
-    private void freePathDirection(Vector3Int start, Vector3Int Vector3Int){
-        
-    }
-
     //doesnt work if both points are on the same boundary
-    public void SetFreePath(Face f1, Face f2, float p1, float p2){
+    public void SetFreePath(Face f1, Face f2, int p1, int p2, int width){
+        (int,int) rp1 = FacePointIndex(f1,p1);
+        (int,int) rp2 = FacePointIndex(f2,p2);
+        (int,int) p = rp1;
+        if((f2 == Face.Left || f2 == Face.Right) && (f1 == Face.Back || f1 == Face.Front)){
+            Face ft = f1;
+            int pt = p1;
+            (int,int) rpt = rp1;
+            f1 = f2;
+            f2 = ft;
+            p1 = p2;
+            p2 = pt;
+            rp1 = rp2;
+            rp2 = rpt;
+        }
         if((f1 == Face.Left || f1 == Face.Right) && (f2 == Face.Left || f2 == Face.Right)){
-            
+            //fix            
+            int mid = width/2;
+            int dir = rp2.Item1 - rp1.Item1 == 0 ? 1 : (rp2.Item1 - rp1.Item1) / Math.Abs((rp2.Item1 - rp1.Item1));
+            while(p.Item1 != mid){
+                for(int k = 0; k < width; k++) free[p.Item1,p.Item2+k] = false;
+                p.Item1 += dir;
+            }
+            int dir2 = rp2.Item2 - rp1.Item2 == 0 ? 1 : (rp2.Item2 - rp1.Item2) / Math.Abs((rp2.Item2 - rp1.Item2));
+            if(dir2 == -1) p.Item2 = Math.Min(p.Item2 + width -1 , depth-1);
+            while(p.Item2 != rp2.Item2){
+                for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
+                p.Item2 += dir2;
+            }
+            if(dir2 == -1) p.Item2 += 1;
+            while(p.Item1 != rp2.Item1){
+                for(int k = 0; k < width; k++) free[p.Item1,p.Item2+k] = false;
+                p.Item1 += dir;
+            }
+            for(int k = 0; k < width; k++) free[p.Item1,p.Item2+k] = false;
         }
-        else if((f1 == Face.Left || f1 == Face.Right) && (f2 == Face.Back || f1 == Face.Front)){
-
+        else if((f1 == Face.Front || f1 == Face.Back) && (f2 == Face.Front || f2 == Face.Back)){
+            //fix            
+            int mid = depth/2;
+            int dir = rp2.Item2 - rp1.Item2 == 0 ? 1 : (rp2.Item2 - rp1.Item2) / Math.Abs((rp2.Item2 - rp1.Item2));
+            while(p.Item2 != mid){
+                for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
+                p.Item2 += dir;
+            }
+            int dir2 = rp2.Item1 - rp1.Item1 == 0 ? 1 : (rp2.Item1 - rp1.Item1) / Math.Abs((rp2.Item1 - rp1.Item1));
+            if(dir2 == -1) p.Item2 = Math.Min(p.Item2 + width -1 , depth-1);
+            while(p.Item1 != rp2.Item1){
+                for(int k = 0; k < width; k++) free[p.Item1,p.Item2+k] = false;
+                p.Item1 += dir2;
+            }
+            while(p.Item2 != rp2.Item2){
+                for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
+                p.Item2 += dir;
+            }
+            for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
         }
-        else if(true){}
+        else{
+            int dir = rp2.Item1 - rp1.Item1 == 0 ? 1 : (rp2.Item1 - rp1.Item1) / Math.Abs((rp2.Item1 - rp1.Item1));
+            while(p.Item1 != rp2.Item1){
+                for(int k = 0; k < width; k++) free[p.Item1,p.Item2+k] = false;
+                p.Item1 += dir;
+            }
+            int dir2 = rp2.Item2 - rp1.Item2 == 0 ? 1 : (rp2.Item2 - rp1.Item2) / Math.Abs((rp2.Item2 - rp1.Item2));
+            if(dir2 == -1) p.Item2 = Math.Min(p.Item2 + width -1 , depth-1);
+            while(p.Item2 != rp2.Item2){
+                for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
+                p.Item2 += dir2;
+            }
+            for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
+        }
     }
 
-    public Vector3 FacePoint(Face face){
+    public Vector3Int FacePoint(Face face){
         switch(face){
             case Face.Right:
                 return LowerRightPoint;
@@ -81,14 +142,42 @@ public class DungeonRoom : IGameObjectable{
                 return roomPoint;
         }
     }
+    public Vector3Int FacePoint(Face face, int p){
+        switch(face){
+            case Face.Left:
+                return LowerLeftPoint + new Vector3Int(0,0,p);
+            case Face.Right:
+                return LowerRightPoint + new Vector3Int(0,0,p);
+            case Face.Back:
+                return UpperLeftPoint + new Vector3Int(p,0,0);
+            case Face.Front:
+                return LowerLeftPoint + new Vector3Int(p,0,0);
+            default:
+                return roomPoint;
+        }
+    }
+    public (int,int) FacePointIndex(Face face, int p){
+        switch(face){
+            case Face.Left:
+                return (0,p);
+            case Face.Right:
+                return (width-1,p);
+            case Face.Back:
+                return (p,depth-1);
+            case Face.Front:
+                return (p,0);
+            default:
+                return (0,0);
+        }
+    }
 
     public void AddCorridorPoint(Tuple<Face, int,int> t){
         corridorPoints.Add(t);
-        // foreach(Tuple<Face,float> tp in corridorPoints){
-        //     if(tp.Item1 != t.Item1){
-        //         SetFreePath(tp.Item1, t.Item1, tp.Item2, t.Item2);
-        //     }
-        // }
+        foreach(Tuple<Face, int,int> tp in corridorPoints){
+             if(tp.Item1 != t.Item1){
+                SetFreePath(tp.Item1, t.Item1, tp.Item2, t.Item2, Math.Min(t.Item3, tp.Item3));
+             }
+        }
     }
 
     public Mesh ToMesh(){
@@ -142,17 +231,28 @@ public class DungeonRoom : IGameObjectable{
         }
     }
 
+    public void RoomsFreeMask(bool[,] m){
+        for(int i = 0; i < free.GetLength(0); i++){
+            for(int j = 0; j < free.GetLength(1); j++){
+                m[roomPoint.x+i, roomPoint.z+j] = free[i,j];
+            }
+        }
+    }
+
     public Vector3Int RoomPoint{
         get{return roomPoint;}
     }
-    public Vector3 UpperLeftPoint{
-        get{return new Vector3(roomPoint.x, roomPoint.y, roomPoint.z + depth);}
+    public Vector3Int LowerLeftPoint{
+        get{return roomPoint;}
     }
-    public Vector3 UpperRightPoint{
-        get{return new Vector3(roomPoint.x + width, roomPoint.y, roomPoint.z + depth);}
+    public Vector3Int UpperLeftPoint{
+        get{return new Vector3Int(roomPoint.x, roomPoint.y, roomPoint.z + depth);}
     }
-    public Vector3 LowerRightPoint{
-        get{return new Vector3(roomPoint.x + width, roomPoint.y, roomPoint.z);}
+    public Vector3Int UpperRightPoint{
+        get{return new Vector3Int(roomPoint.x + width, roomPoint.y, roomPoint.z + depth);}
+    }
+    public Vector3Int LowerRightPoint{
+        get{return new Vector3Int(roomPoint.x + width, roomPoint.y, roomPoint.z);}
     }
     public List<DungeonCorridor> Corridors{
         get{return corridors;}
@@ -164,6 +264,10 @@ public class DungeonRoom : IGameObjectable{
     public int Depth{
         get{return depth;}
         set{depth = value;}
+    }
+    public int Type{
+        get{return type;}
+        set{type = value;}
     }
 }
 public class DungeonRoomMeta : MonoBehaviour{
@@ -409,14 +513,14 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             }
            if(node.Dim == 2){
                 node.RoomPoint = new Vector3Int(node.Point[0]+leftMargin, 0, node.Point[1] + depthLowerMargin);
-                node.Room = new DungeonRoom(node.Size[0]-leftMargin-rightMargin, node.Size[1]-depthLowerMargin-depthUpperMargin, root.Node.FHeight(node), node.RoomPoint);
+                node.Room = new DungeonRoom(node.Size[0]-leftMargin-rightMargin, node.Size[1]-depthLowerMargin-depthUpperMargin, root.Node.FHeight(node), node.RoomPoint, rand : node.Rand);
                 
            }
            else if(node.Dim == 3){
                 int heightLowerMargin = node.Dim > 2 ? node.Rand.Next(rMinMaxMargin[2].Item1,rMinMaxMargin[2].Item2+1) : 0;
                 int heightUpperMargin = node.Dim > 2 ? node.Rand.Next(rMinMaxMargin[2].Item1,rMinMaxMargin[2].Item2+1) : 0;
                 node.RoomPoint = new Vector3Int(node.Point[0]+leftMargin, node.Point[2] + heightLowerMargin, node.Point[1] + depthLowerMargin);
-                node.Room = new DungeonRoom(node.Size[0]-leftMargin-rightMargin, node.Size[1]-depthLowerMargin-depthUpperMargin, node.Size[2]-heightLowerMargin-heightUpperMargin, node.RoomPoint);
+                node.Room = new DungeonRoom(node.Size[0]-leftMargin-rightMargin, node.Size[1]-depthLowerMargin-depthUpperMargin, node.Size[2]-heightLowerMargin-heightUpperMargin, node.RoomPoint, rand : node.Rand);
                 
            }
             node.RoomsNorth.Add(node.Room); node.RoomsEast.Add(node.Room); node.RoomsSouth.Add(node.Room); node.RoomsWest.Add(node.Room);
@@ -629,8 +733,8 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.Path.Add(end);
             corridor.Width = width;
             corridor.Height = height;
-            corridor.StartFace = DungeonRoom.Face.Top;
-            corridor.EndFace = DungeonRoom.Face.Bottom;
+            corridor.StartFace = DungeonRoom.Face.Back;
+            corridor.EndFace = DungeonRoom.Face.Front;
             corridor.PartitionPoint = node.PointV;
             node.Corridors.Add(corridor);
         }
@@ -679,10 +783,30 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
             corridor.Path.Add(end);
             corridor.Width = width;
             corridor.Height = height;
-            corridor.StartFace = DungeonRoom.Face.Top;
-            corridor.EndFace = DungeonRoom.Face.Bottom;
+            corridor.StartFace = DungeonRoom.Face.Back;
+            corridor.EndFace = DungeonRoom.Face.Front;
             corridor.PartitionPoint = node.PointV;
             node.Corridors.Add(corridor);
+        }
+    }
+
+    public void AssignTypes(int n, float[] p = null){
+        if(node.Room != null){
+            if(p != null){
+                float a = 0f;
+                double d = node.Rand.NextDouble();
+                for(int i = 0; i <= p.Length; i++){
+                    a += p[i];
+                    if(d <= a){
+                        node.Room.Type = i;
+                        break;
+                    }
+                }
+            }
+            node.Room.Type = node.Rand.Next(1,n+1);
+        }
+        foreach(DungeonTreeT c in children){
+            c.AssignTypes(n, p);
         }
     }
 
@@ -717,8 +841,14 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         return m;
     }
 
-    public Texture2D ToTexture(){
-        bool[,] m = ToBoolArray();
+    public bool[,] RoomsFreeMask(bool[,] m = null, int type = -1){
+        m ??= new bool[node.Size[0], node.Size[1]];
+        if(node.Room != null && node.Room.Type == type) node.Room.RoomsFreeMask(m);
+        foreach(DungeonTreeT c in children) c.RoomsFreeMask(m, type : type);
+        return m;
+    }
+
+    public Texture2D ToTexture(bool[,] m){
         Texture2D t = new Texture2D(node.Size[0], node.Size[1], TextureFormat.RGBA32, false);
         for(int i = 0; i < m.GetLength(0); i ++){
             for(int j = 0; j < m.GetLength(1); j++){
