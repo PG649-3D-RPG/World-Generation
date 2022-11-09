@@ -15,5 +15,5 @@ MonoBehaviour:
   Depth: 10
   AMPLITUDE: 0.8
   FREQUENCY: 192
-  BlurringPasses: 1
+  BlurringPasses: 0
   BlurRadius: 3
