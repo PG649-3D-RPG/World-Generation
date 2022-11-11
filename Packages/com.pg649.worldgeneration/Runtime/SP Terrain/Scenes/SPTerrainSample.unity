@@ -136,12 +136,13 @@ GameObject:
   - component: {fileID: 1189246401}
   - component: {fileID: 1189246403}
   - component: {fileID: 1189246404}
-  - component: {fileID: 1189246406}
   - component: {fileID: 1189246402}
   - component: {fileID: 1189246407}
   - component: {fileID: 1189246408}
   - component: {fileID: 1189246409}
   - component: {fileID: 1189246410}
+  - component: {fileID: 1189246412}
+  - component: {fileID: 1189246411}
   m_Layer: 0
   m_Name: SPTerrain
   m_TagString: Untagged
@@ -247,12 +248,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mask: 1
-  type: 0
+  type: -1
   invertedBorderMaskWidth: 6
   subtractBorder: 0
   invertMask: 0
   maskNull: 0
-  trueValue: 6
+  trueValue: 3
   falseValue: -1
 --- !u!114 &1189246404
 MonoBehaviour:
@@ -273,25 +274,6 @@ MonoBehaviour:
   invertMask: 0
   maskNull: 0
   numberOfRuns: 600
---- !u!114 &1189246406
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1189246396}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 879eb7c0720c86f4cb7cde6f3374f9fe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mask: 6
-  type: 0
-  invertedBorderMaskWidth: -1
-  subtractBorder: 0
-  invertMask: 0
-  maskNull: 0
-  numberOfRuns: 2
 --- !u!114 &1189246407
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -331,7 +313,7 @@ MonoBehaviour:
   subtractBorder: 0
   invertMask: 0
   maskNull: 0
-  numberOfRuns: 10
+  numberOfRuns: 4
 --- !u!114 &1189246409
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -351,7 +333,7 @@ MonoBehaviour:
   invertMask: 0
   maskNull: 0
   scale: 0.4
-  maxAddedHeight: 1
+  maxAddedHeight: 1.5
   numberOfRuns: 2
 --- !u!114 &1189246410
 MonoBehaviour:
@@ -372,6 +354,46 @@ MonoBehaviour:
   invertMask: 0
   maskNull: 0
   power: 1.1
+--- !u!114 &1189246411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1189246396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e582132e3a6c4644a249c6d1c56f12a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mask: 1
+  type: -1
+  invertedBorderMaskWidth: 6
+  subtractBorder: 0
+  invertMask: 0
+  maskNull: 0
+  scale: 0.4
+  maxAddedHeight: 3
+  numberOfRuns: 1
+--- !u!114 &1189246412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1189246396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 879eb7c0720c86f4cb7cde6f3374f9fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mask: 1
+  type: -1
+  invertedBorderMaskWidth: 6
+  subtractBorder: 0
+  invertMask: 0
+  maskNull: 0
+  numberOfRuns: 4
 --- !u!1 &1215729230
 GameObject:
   m_ObjectHideFlags: 0
