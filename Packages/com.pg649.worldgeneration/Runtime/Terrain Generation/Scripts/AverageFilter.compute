@@ -1,0 +1,53 @@
+#pragma kernel AverageFilterMultiply3x3
+#pragma kernel AverageFilterMultiplyAdd3x3
+static const float avg_3x3 = 1/(float)9;
+
+
+uint _size;
+bool _add;
+StructuredBuffer<int> _mask;
+StructuredBuffer<float> _input;
+RWStructuredBuffer<float> _output;
+
+[numthreads(256,1,1)]
+void AverageFilterMultiply3x3 (uint3 id : SV_DispatchThreadID)
+{
+    uint col = id.x % _size; // modulo => column
+    uint row = id.x / _size; // integer division => row
+    float sum = _input[row*_size+col];
+
+    if(_mask[row*_size+col] == 1){
+    sum *= _input[(row - 1) * _size + (col - 1)] * avg_3x3;
+    sum *= _input[(row - 1) * _size + (col)] * avg_3x3;
+    sum *= _input[(row - 1) * _size + (col + 1)] * avg_3x3;
+    sum *= _input[(row) * _size + (col - 1)] * avg_3x3;
+    sum *= _input[(row) * _size + (col)] * avg_3x3;
+    sum *= _input[(row) * _size + (col + 1)] * avg_3x3;
+    sum *= _input[(row + 1) * _size + (col - 1)] * avg_3x3;
+    sum *= _input[(row + 1) * _size + (col)] * avg_3x3;
+    sum *= _input[(row + 1) * _size + (col + 1)] * avg_3x3;
+    _output[row*_size+col] = sum;
+    } else if (_add) _output[row*_size+col] = _input[row*_size+col];
+    
+}
+
+[numthreads(256,1,1)]
+void AverageFilterMultiplyAdd3x3 (uint3 id : SV_DispatchThreadID)
+{
+    uint col = id.x % _size; // modulo => column
+    uint row = id.x / _size; // integer division => row
+    float sum = 0;
+
+    if(_mask[row*_size+col] == 1){
+    sum += _input[(row - 1) * _size + (col - 1)] * avg_3x3;
+    sum += _input[(row - 1) * _size + (col)] * avg_3x3;
+    sum += _input[(row - 1) * _size + (col + 1)] * avg_3x3;
+    sum += _input[(row) * _size + (col - 1)] * avg_3x3;
+    sum += _input[(row) * _size + (col)] * avg_3x3;
+    sum += _input[(row) * _size + (col + 1)] * avg_3x3;
+    sum += _input[(row + 1) * _size + (col - 1)] * avg_3x3;
+    sum += _input[(row + 1) * _size + (col)] * avg_3x3;
+    sum += _input[(row + 1) * _size + (col + 1)] * avg_3x3;
+    _output[row*_size+col] = sum;
+    } else if (_add) _output[row*_size+col] = _input[row*_size+col];
+}

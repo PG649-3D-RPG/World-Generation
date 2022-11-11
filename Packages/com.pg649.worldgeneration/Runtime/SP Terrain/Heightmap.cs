@@ -21,9 +21,22 @@ public class Heightmap
         HeightmapTransforms.ApplyPerlinNoise(heights, maxAddedHeight : maxAddedHeight/heightScale, scale : scale, mask : mask, fractalRuns : fractalRuns);
     }
     public void AverageFilter(Mask mask = null, int numberOfRuns = 1){
+        // System.Diagnostics.Stopwatch sw = new();
+        // sw.Restart();
         for(int i = 0; i < numberOfRuns; i++){
             HeightmapTransforms.ApplyFilter(heights, HeightmapTransforms.AverageFilter(3,3), mask : mask);
         }
+        // sw.Stop();
+        // Debug.Log("Runtime AverageFilter CPU:\t " + sw.Elapsed);
+        // sw.Reset();
+    }
+    public void AverageFilterGPU(ComputeShader averageShader, Mask mask = null, int numberOfRuns = 1) {
+        // System.Diagnostics.Stopwatch sw = new();
+        // sw.Restart();
+        TerrainShader.AverageFilterGPU3x3(averageShader, input: heights, mask: mask, passes: numberOfRuns);
+        // sw.Stop();
+        // Debug.Log("Runtime AverageFilter GPU:\t " + sw.Elapsed);
+        // sw.Reset();
     }
     public void Power(float power, Mask mask = null){
         MapI(f => Mathf.Pow(f,power), mask);
