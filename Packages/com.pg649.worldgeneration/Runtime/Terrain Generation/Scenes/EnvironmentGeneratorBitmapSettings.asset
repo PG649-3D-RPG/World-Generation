@@ -15,5 +15,6 @@ MonoBehaviour:
   Depth: 100
   AMPLITUDE: 0.8
   FREQUENCY: 192
+  gaussBlurShader: {fileID: 7200000, guid: 80bb938e990b04301ac8b936de6f17b7, type: 3}
   BlurringPasses: 0
   BlurRadius: 10

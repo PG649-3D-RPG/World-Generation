@@ -13,6 +13,8 @@ public class EnvironmentGeneratorBitmapSettings : ScriptableObject {
 
     [Header("Blur settings")]
     [Space(10)]
+    [SerializeField]
+    public ComputeShader gaussBlurShader;
     public int BlurringPasses = 10;
     public int BlurRadius = 10;
 }

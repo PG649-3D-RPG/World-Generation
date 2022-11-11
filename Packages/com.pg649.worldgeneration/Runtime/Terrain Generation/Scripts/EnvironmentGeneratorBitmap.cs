@@ -4,6 +4,7 @@ using Unity.AI.Navigation;
 using UnityEngine;
 
 public class EnvironmentGeneratorBitmap {
+    private readonly ComputeShader computeShader;
     private readonly EnvironmentGeneratorBitmapSettings gen_settings;
 
     private readonly bool[,] heightmapMask;
@@ -12,6 +13,7 @@ public class EnvironmentGeneratorBitmap {
     private Terrain terrain;
 
     public EnvironmentGeneratorBitmap(bool[,] mask, EnvironmentGeneratorBitmapSettings settings) {
+        computeShader = settings.gaussBlurShader;
         gen_settings = settings;
         heightmapMask = mask;
         size = mask.GetLength(0);
@@ -21,6 +23,8 @@ public class EnvironmentGeneratorBitmap {
     private bool IsPowerOfTwo(int x) => (x != 0) && ((x & (x - 1)) == 0); // from https://stackoverflow.com/a/600306
 
     public void Build() {
+        System.Diagnostics.Stopwatch sw = new();
+
         GameObject go = GameObject.Find("Terrain Space");
         if (go == null) go = new GameObject("Terrain Space");
 
@@ -53,19 +57,20 @@ public class EnvironmentGeneratorBitmap {
         HeightmapTransforms.ApplyPerlinNoise(heights, maxAddedHeight: .1f, scale: .4f, mask: heightmapMask.ZipMap(ivbm, (x, y) => !x && !y));
 
 
-        //heights = TerrainTransforms.Twirl(heights, 1f);
+        // sw.Reset();
+        // sw.Restart();
+        // for (int i = 0; i < 100; i++) {
+        //     heights = TerrainBlur.GaussianBlurParCPU(heights, 1, weight: 1f);
+        // }
+        // sw.Stop();
+        // Debug.Log("Runtime Gauss CPU Naive:\t " + sw.Elapsed);
+        // sw.Reset();
 
-        System.Diagnostics.Stopwatch sw = new();
-
-        sw.Start();
-
-        for (int i = 0; i < gen_settings.BlurringPasses; i++) {
-            heights = TerrainBlur.GaussianBlurParCPU(heights, gen_settings.BlurRadius);
-        }
-
+        sw.Restart();
+        TerrainShader.GaussianBlurGPU3x3SD1(computeShader, input: heights, 1000);
         sw.Stop();
-
-        Debug.Log(sw.Elapsed);
+        Debug.Log("Runtime Gauss Compute Shader:\t " + sw.Elapsed);
+        sw.Reset();
 
         //AddNoise(heights);
         //heights = TerrainBlur.ApplyBlur(heights, 5);

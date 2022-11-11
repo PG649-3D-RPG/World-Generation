@@ -22,7 +22,7 @@ public static class TerrainBlur {
         }
     }
 
-    private static float[,] GaussianKernel2D(int radius, float weight) {
+    public static float[,] GaussianKernel2D(int radius, float weight) {
         if (radius < 1) throw new ArgumentException("Dimension must be at least 1");
         int dim = 2 * radius + 1;
         float[,] kernel = new float[dim, dim];
@@ -49,7 +49,7 @@ public static class TerrainBlur {
         return kernelFlat;
     }
 
-    public static float[,] GaussianBlurParCPU(float[,] heights, int radius, float weight = 5.5f) {//TODO implement as compute shader
+    public static float[,] GaussianBlurParCPU(float[,] heights, int radius, float weight) {
         int size = heights.GetLength(0);
 
         float[] blurred = new float[size * size];
@@ -81,15 +81,6 @@ public static class TerrainBlur {
             blurred[i] = sum;
         });
 
-        //normalize array to 1
-        float max_val = 0f;
-        for (int i = 0; i < size * size; i++) {
-            if (blurred[i] > max_val) max_val = blurred[i];
-        }
-        for (int i = 0; i < size * size; i++) {
-            blurred[i] /= max_val;
-        }
-
         // expand result
         float[,] result = new float[size, size];
         for (int i = 0; i < size; i++) {
@@ -102,7 +93,7 @@ public static class TerrainBlur {
     }
 
 
-    public static float[,] GaussianBlur(float[,] heights, int radius, float weight = 5.5f) {//TODO implement as compute shader
+    public static float[,] GaussianBlur(float[,] heights, int radius, float weight = 5.5f) {
         int size = heights.GetLength(0);
 
         float[,] blurred = new float[size, size];
