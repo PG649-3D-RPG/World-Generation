@@ -52,10 +52,10 @@ public class DungeonRoom : IGameObjectable{
         this.height = height;
         this.roomPoint = roomPoint;
         free = new bool[width,depth];
-        free.Map<bool>(x => true);
+        free.MapI<bool>(x => true);
         rand ??= new System.Random();
         corridorPoints = new List<Tuple<Face,int,int>>();
-        this.type = -1;
+        this.type = 0;
     }
     public DungeonRoom(IEnumerable<int> x, Vector3Int roomPoint, System.Random rand = null) : this(x.ToArray()[0],x.ToArray()[1],x.ToArray()[2], roomPoint, rand : rand){}
 
@@ -223,7 +223,7 @@ public class DungeonRoom : IGameObjectable{
         return go;
     }
 
-    public void ApplyToBoolArray(bool[,] m){
+    public void ApplyToMask(Mask m){
         for(int i = roomPoint.x; i < roomPoint.x + width; i++){
             for(int j = roomPoint.z; j < roomPoint.z + depth; j++){
                 m[i,j] = true;
@@ -231,7 +231,7 @@ public class DungeonRoom : IGameObjectable{
         }
     }
 
-    public void RoomsFreeMask(bool[,] m){
+    public void RoomsFreeMask(Mask m){
         for(int i = 0; i < free.GetLength(0); i++){
             for(int j = 0; j < free.GetLength(1); j++){
                 m[roomPoint.x+i, roomPoint.z+j] = free[i,j];
@@ -420,6 +420,7 @@ public class DungeonTreeNode : SPTreeNode{
     private Tuple<int,int>[] minMaxMargin;
     private Tuple<int,int> minMaxHeight;
     private Func<SPTreeNode,float> fHeight;
+    private int numberOfTypes;
 
     private List<DungeonRoom> roomsNorth, roomsEast, roomsSouth, roomsWest, roomsBelow, roomsAbove;
 
@@ -431,6 +432,7 @@ public class DungeonTreeNode : SPTreeNode{
         //fHeight = fHeightSizeBased();
         corridors = new List<DungeonCorridor>();
         roomsNorth = new(); roomsEast = new(); roomsSouth = new(); roomsWest = new(); roomsBelow = new(); roomsAbove = new();
+        numberOfTypes = 1;
     }
     //fix me
     public DungeonTreeNode(SPTreeNode node) : this(node.Size, node.Rand){
@@ -468,6 +470,10 @@ public class DungeonTreeNode : SPTreeNode{
     public List<DungeonCorridor> Corridors{
         get{return corridors;}
         set{corridors = value;}
+    }
+    public int NumberOfTypes{
+        get{return numberOfTypes;}
+        set{numberOfTypes = value;}
     }
     public List<DungeonRoom> RoomsNorth{get {return roomsNorth;}}
     public List<DungeonRoom> RoomsEast{get {return roomsEast;}}
@@ -791,11 +797,12 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
     }
 
     public void AssignTypes(int n, float[] p = null){
+        node.NumberOfTypes = n;
         if(node.Room != null){
             if(p != null){
                 float a = 0f;
                 double d = node.Rand.NextDouble();
-                for(int i = 0; i <= p.Length; i++){
+                for(int i = 0; i < p.Length; i++){
                     a += p[i];
                     if(d <= a){
                         node.Room.Type = i;
@@ -803,7 +810,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                     }
                 }
             }
-            node.Room.Type = node.Rand.Next(1,n+1);
+            node.Room.Type = node.Rand.Next(0,n);
         }
         foreach(DungeonTreeT c in children){
             c.AssignTypes(n, p);
@@ -833,30 +840,42 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         return go;
     }
 
-    public bool[,] ToBoolArray(bool[,] m = null){
-        m ??= new bool[node.Size[0], node.Size[1]];
-        foreach(DungeonCorridor corridor in node.Corridors) corridor.ApplyToBoolArray(m);
-        if(node.Room != null) node.Room.ApplyToBoolArray(m);
-        foreach(DungeonTreeT c in children) c.ToBoolArray(m);
-        return m;
-    }
+    // public bool[,] ToBoolArray(bool[,] m = null){
+    //     m ??= new bool[node.Size[0], node.Size[1]];
+    //     foreach(DungeonCorridor corridor in node.Corridors) corridor.ApplyToBoolArray(m);
+    //     if(node.Room != null) node.Room.ApplyToBoolArray(m);
+    //     foreach(DungeonTreeT c in children) c.ToBoolArray(m);
+    //     return m;
+    // }
 
-    public bool[,] RoomsFreeMask(bool[,] m = null, int type = -1){
-        m ??= new bool[node.Size[0], node.Size[1]];
-        if(node.Room != null && node.Room.Type == type) node.Room.RoomsFreeMask(m);
+    public Mask RoomsFreeMask(Mask m = null, int type = -1){
+        m ??= new Mask(node.Size[0], node.Size[1]);
+        if(node.Room != null && (node.Room.Type == type || type == -1)) node.Room.RoomsFreeMask(m);
         foreach(DungeonTreeT c in children) c.RoomsFreeMask(m, type : type);
         return m;
     }
-
-    public Texture2D ToTexture(bool[,] m){
-        Texture2D t = new Texture2D(node.Size[0], node.Size[1], TextureFormat.RGBA32, false);
-        for(int i = 0; i < m.GetLength(0); i ++){
-            for(int j = 0; j < m.GetLength(1); j++){
-                if(m[i,j]) t.SetPixel(i,j, Color.black);
-            }
-        }
-        t.Apply();
-        return t;
+    
+    public Mask RoomsMask(Mask m = null, int type = -1){
+        m ??= new Mask(node.Size[0], node.Size[1]);
+        if(node.Room != null && (node.Room.Type == type || type == -1)) node.Room.ApplyToMask(m);
+        foreach(DungeonTreeT c in children) c.RoomsMask(m, type : type);
+        return m;
     }
+
+    public Mask CorridorsMask(Mask m = null){
+        m ??= new Mask(node.Size[0], node.Size[1]);
+        foreach(DungeonCorridor corridor in node.Corridors) corridor.ApplyToBoolArray(m.Array);
+        foreach(DungeonTreeT c in children) c.CorridorsMask(m);
+        return m;
+    }
+
+    public TerrainMasks ToTerrainMasks(){
+        Mask[] typeMasks = new Mask[node.NumberOfTypes];
+        for(int i = 0; i < node.NumberOfTypes; i++){
+            typeMasks[i] = RoomsMask(type : i);
+        }
+        return new TerrainMasks(RoomsMask(), RoomsFreeMask(), CorridorsMask(), typeMasks);
+    }
+
 }   
 

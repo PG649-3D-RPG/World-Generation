@@ -57,24 +57,24 @@ public class Generate2DDungeon : MonoBehaviour
         dTree.PlaceRooms(roomPlacementProbability);//, quadraticTerrain : quadraticTerrain, quadraticTerrainMin : divideMin, quadraticTerrainMax : divideMax);
         dTree.PlaceCorridors(minCorridorWidth, maxCorridorWidth, minCorridorHeight, maxCorridorHeight, maxDistance : maxDistance);
         //dTree.ToGameObject();
-        bool[,] a = dTree.ToBoolArray();
+        bool[,] a = (dTree.RoomsMask() + dTree.CorridorsMask()).Array ;
 
-        Texture2D tt = dTree.ToTexture(dTree.RoomsFreeMask());
-        byte[] bytess = ImageConversion.EncodeArrayToPNG(tt.GetRawTextureData(), tt.graphicsFormat, (uint)tt.width, (uint)tt.height);
-        File.WriteAllBytes(Application.dataPath + "/test.png", bytess);
+        // Texture2D tt = dTree.ToTexture(dTree.RoomsFreeMask());
+        // byte[] bytess = ImageConversion.EncodeArrayToPNG(tt.GetRawTextureData(), tt.graphicsFormat, (uint)tt.width, (uint)tt.height);
+        // File.WriteAllBytes(Application.dataPath + "/test.png", bytess);
         
         EnvironmentGeneratorBitmap generator = new EnvironmentGeneratorBitmap(a, environmentGeneratorSettings);
         generator.Build();
-        if(createTexture){
-            Texture2D t = dTree.ToTexture(a);
-            byte[] bytes = ImageConversion.EncodeArrayToPNG(t.GetRawTextureData(), t.graphicsFormat, (uint)t.width, (uint)t.height);
-            File.WriteAllBytes(Application.dataPath + "/dungeon.png", bytes);
-        }
+        // if(createTexture){
+        //     Texture2D t = dTree.ToTexture(a);
+        //     byte[] bytes = ImageConversion.EncodeArrayToPNG(t.GetRawTextureData(), t.graphicsFormat, (uint)t.width, (uint)t.height);
+        //     File.WriteAllBytes(Application.dataPath + "/dungeon.png", bytes);
+        // }
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        
     }
 }
