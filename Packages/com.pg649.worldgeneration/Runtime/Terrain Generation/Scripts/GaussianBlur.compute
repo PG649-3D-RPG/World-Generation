@@ -1,25 +1,21 @@
-#pragma kernel GaussianBlurAddKeep3x3SD1
-#pragma kernel GaussianBlurMultiplyKeep3x3SD1
-#pragma kernel GaussianBlurAdd3x3SD1
-#pragma kernel GaussianBlurMultiply3x3SD1
-/* Kernel 3x3 SD=1 normalized
-0.07511362	 0.1238414	 0.07511362
+#pragma kernel GaussianBlurKeep3x3SD1
+#pragma kernel GaussianBlur3x3SD1
+#pragma kernel GaussianBlurKeep3x3SD2
+#pragma kernel GaussianBlur3x3SD2
+#pragma kernel GaussianBlurKeep3x3SD3
+#pragma kernel GaussianBlur3x3SD3
 
-0.1238414	 0.20418	 0.1238414
-
-0.07511362	 0.1238414	 0.07511362
-*/
-
-/* Kernel 3x3 SD=3 normalized
-0.1069973	 0.1131098	 0.1069973
-
-0.1131098	 0.1195715	 0.1131098
-
-0.1069973	 0.1131098	 0.1069973
-*/
-static const float gauss_3x3_sd1_diag = 0.07511362;
+static const float gauss_3x3_sd1_diag = 0.07511361;
 static const float gauss_3x3_sd1_next = 0.1238414;
-static const float gauss_3x3_sd1_center = 0.20418;
+static const float gauss_3x3_sd1_center = 0.20417996;
+
+static const float gauss_3x3_sd2_diag = 0.10186806;
+static const float gauss_3x3_sd2_next = 0.11543164;
+static const float gauss_3x3_sd2_center = 0.13080118;
+
+static const float gauss_3x3_sd3_diag = 0.1069973;
+static const float gauss_3x3_sd3_next = 0.11310982;
+static const float gauss_3x3_sd3_center = 0.11957153;
 
 uint _size_safe;
 uint _size_input;
@@ -30,14 +26,14 @@ RWStructuredBuffer<float> _output;
 
 // id.x is iterated over the smaller "safe zone" array -> lookups and writes have to be translated
 [numthreads(256,1,1)]
-void GaussianBlurAddKeep3x3SD1 (uint3 id : SV_DispatchThreadID)
+void GaussianBlurKeep3x3SD1 (uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _end_of_safe_zone) return; // stop after end of safe zone
     const uint row = (id.x / _size_safe) + 1; // integer division => row
     const uint col = (id.x % _size_safe) + 1; // modulo => column
 
 
-    float sum = _input[row * _size_input + col]; // translated to input coords
+    float sum = 0;
 
     if(_mask[row * _size_input + col] == 1) {
         sum += _input[(row - 1) * _size_input + (col - 1)] * gauss_3x3_sd1_diag;
@@ -55,39 +51,14 @@ void GaussianBlurAddKeep3x3SD1 (uint3 id : SV_DispatchThreadID)
 
 // id.x is iterated over the smaller "safe zone" array -> lookups and writes have to be translated
 [numthreads(256,1,1)]
-void GaussianBlurMultiplyKeep3x3SD1 (uint3 id : SV_DispatchThreadID)
+void GaussianBlur3x3SD1 (uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _end_of_safe_zone) return; // stop after end of safe zone
     const uint row = (id.x / _size_safe) + 1; // integer division => row
     const uint col = (id.x % _size_safe) + 1; // modulo => column
 
 
-    float sum = _input[row * _size_input + col]; // translated to input coords
-
-    if(_mask[row * _size_input + col] == 1) {
-        sum *= _input[(row - 1) * _size_input + (col - 1)] * gauss_3x3_sd1_diag;
-        sum *= _input[(row - 1) * _size_input + (col)] * gauss_3x3_sd1_next;
-        sum *= _input[(row - 1) * _size_input + (col + 1)] * gauss_3x3_sd1_diag;
-        sum *= _input[(row) * _size_input + (col - 1)] * gauss_3x3_sd1_next;
-        sum *= _input[(row) * _size_input + (col)] * gauss_3x3_sd1_center;
-        sum *= _input[(row) * _size_input + (col + 1)] * gauss_3x3_sd1_next;
-        sum *= _input[(row + 1) * _size_input + (col - 1)] * gauss_3x3_sd1_diag;
-        sum *= _input[(row + 1) * _size_input + (col)] * gauss_3x3_sd1_next;
-        sum *= _input[(row + 1) * _size_input + (col + 1)] * gauss_3x3_sd1_diag;
-        _output[row * _size_input + col] = sum;
-    } else _output[row * _size_input + col] = _input[row * _size_input + col];
-}
-
-// id.x is iterated over the smaller "safe zone" array -> lookups and writes have to be translated
-[numthreads(256,1,1)]
-void GaussianBlurAdd3x3SD1 (uint3 id : SV_DispatchThreadID)
-{
-    if (id.x >= _end_of_safe_zone) return; // stop after end of safe zone
-    const uint row = (id.x / _size_safe) + 1; // integer division => row
-    const uint col = (id.x % _size_safe) + 1; // modulo => column
-
-
-    float sum = _input[row * _size_input + col]; // translated to input coords
+    float sum = 0;
 
     if(_mask[row * _size_input + col] == 1) {
         sum += _input[(row - 1) * _size_input + (col - 1)] * gauss_3x3_sd1_diag;
@@ -103,27 +74,100 @@ void GaussianBlurAdd3x3SD1 (uint3 id : SV_DispatchThreadID)
     }
 }
 
-// id.x is iterated over the smaller "safe zone" array -> lookups and writes have to be translated
 [numthreads(256,1,1)]
-void GaussianBlurMultiply3x3SD1 (uint3 id : SV_DispatchThreadID)
+void GaussianBlurKeep3x3SD2 (uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _end_of_safe_zone) return; // stop after end of safe zone
     const uint row = (id.x / _size_safe) + 1; // integer division => row
     const uint col = (id.x % _size_safe) + 1; // modulo => column
 
 
-    float sum = _input[row * _size_input + col]; // translated to input coords
+    float sum = 0;
 
     if(_mask[row * _size_input + col] == 1) {
-        sum *= _input[(row - 1) * _size_input + (col - 1)] * gauss_3x3_sd1_diag;
-        sum *= _input[(row - 1) * _size_input + (col)] * gauss_3x3_sd1_next;
-        sum *= _input[(row - 1) * _size_input + (col + 1)] * gauss_3x3_sd1_diag;
-        sum *= _input[(row) * _size_input + (col - 1)] * gauss_3x3_sd1_next;
-        sum *= _input[(row) * _size_input + (col)] * gauss_3x3_sd1_center;
-        sum *= _input[(row) * _size_input + (col + 1)] * gauss_3x3_sd1_next;
-        sum *= _input[(row + 1) * _size_input + (col - 1)] * gauss_3x3_sd1_diag;
-        sum *= _input[(row + 1) * _size_input + (col)] * gauss_3x3_sd1_next;
-        sum *= _input[(row + 1) * _size_input + (col + 1)] * gauss_3x3_sd1_diag;
+        sum += _input[(row - 1) * _size_input + (col - 1)] * gauss_3x3_sd2_diag;
+        sum += _input[(row - 1) * _size_input + (col)] * gauss_3x3_sd2_next;
+        sum += _input[(row - 1) * _size_input + (col + 1)] * gauss_3x3_sd2_diag;
+        sum += _input[(row) * _size_input + (col - 1)] * gauss_3x3_sd2_next;
+        sum += _input[(row) * _size_input + (col)] * gauss_3x3_sd2_center;
+        sum += _input[(row) * _size_input + (col + 1)] * gauss_3x3_sd2_next;
+        sum += _input[(row + 1) * _size_input + (col - 1)] * gauss_3x3_sd2_diag;
+        sum += _input[(row + 1) * _size_input + (col)] * gauss_3x3_sd2_next;
+        sum += _input[(row + 1) * _size_input + (col + 1)] * gauss_3x3_sd2_diag;
+        _output[row * _size_input + col] = sum;
+    } else _output[row * _size_input + col] = _input[row * _size_input + col];
+}
+
+// id.x is iterated over the smaller "safe zone" array -> lookups and writes have to be translated
+[numthreads(256,1,1)]
+void GaussianBlur3x3SD2 (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _end_of_safe_zone) return; // stop after end of safe zone
+    const uint row = (id.x / _size_safe) + 1; // integer division => row
+    const uint col = (id.x % _size_safe) + 1; // modulo => column
+
+
+    float sum = 0;
+
+    if(_mask[row * _size_input + col] == 1) {
+        sum += _input[(row - 1) * _size_input + (col - 1)] * gauss_3x3_sd2_diag;
+        sum += _input[(row - 1) * _size_input + (col)] * gauss_3x3_sd2_next;
+        sum += _input[(row - 1) * _size_input + (col + 1)] * gauss_3x3_sd2_diag;
+        sum += _input[(row) * _size_input + (col - 1)] * gauss_3x3_sd2_next;
+        sum += _input[(row) * _size_input + (col)] * gauss_3x3_sd2_center;
+        sum += _input[(row) * _size_input + (col + 1)] * gauss_3x3_sd2_next;
+        sum += _input[(row + 1) * _size_input + (col - 1)] * gauss_3x3_sd2_diag;
+        sum += _input[(row + 1) * _size_input + (col)] * gauss_3x3_sd2_next;
+        sum += _input[(row + 1) * _size_input + (col + 1)] * gauss_3x3_sd2_diag;
+        _output[row * _size_input + col] = sum;
+    }
+}
+
+[numthreads(256,1,1)]
+void GaussianBlurKeep3x3SD3 (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _end_of_safe_zone) return; // stop after end of safe zone
+    const uint row = (id.x / _size_safe) + 1; // integer division => row
+    const uint col = (id.x % _size_safe) + 1; // modulo => column
+
+
+    float sum = 0;
+
+    if(_mask[row * _size_input + col] == 1) {
+        sum += _input[(row - 1) * _size_input + (col - 1)] * gauss_3x3_sd3_diag;
+        sum += _input[(row - 1) * _size_input + (col)] * gauss_3x3_sd3_next;
+        sum += _input[(row - 1) * _size_input + (col + 1)] * gauss_3x3_sd3_diag;
+        sum += _input[(row) * _size_input + (col - 1)] * gauss_3x3_sd3_next;
+        sum += _input[(row) * _size_input + (col)] * gauss_3x3_sd3_center;
+        sum += _input[(row) * _size_input + (col + 1)] * gauss_3x3_sd3_next;
+        sum += _input[(row + 1) * _size_input + (col - 1)] * gauss_3x3_sd3_diag;
+        sum += _input[(row + 1) * _size_input + (col)] * gauss_3x3_sd3_next;
+        sum += _input[(row + 1) * _size_input + (col + 1)] * gauss_3x3_sd3_diag;
+        _output[row * _size_input + col] = sum;
+    } else _output[row * _size_input + col] = _input[row * _size_input + col];
+}
+
+// id.x is iterated over the smaller "safe zone" array -> lookups and writes have to be translated
+[numthreads(256,1,1)]
+void GaussianBlur3x3SD3 (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _end_of_safe_zone) return; // stop after end of safe zone
+    const uint row = (id.x / _size_safe) + 1; // integer division => row
+    const uint col = (id.x % _size_safe) + 1; // modulo => column
+
+
+    float sum = 0;
+
+    if(_mask[row * _size_input + col] == 1) {
+        sum += _input[(row - 1) * _size_input + (col - 1)] * gauss_3x3_sd3_diag;
+        sum += _input[(row - 1) * _size_input + (col)] * gauss_3x3_sd3_next;
+        sum += _input[(row - 1) * _size_input + (col + 1)] * gauss_3x3_sd3_diag;
+        sum += _input[(row) * _size_input + (col - 1)] * gauss_3x3_sd3_next;
+        sum += _input[(row) * _size_input + (col)] * gauss_3x3_sd3_center;
+        sum += _input[(row) * _size_input + (col + 1)] * gauss_3x3_sd3_next;
+        sum += _input[(row + 1) * _size_input + (col - 1)] * gauss_3x3_sd3_diag;
+        sum += _input[(row + 1) * _size_input + (col)] * gauss_3x3_sd3_next;
+        sum += _input[(row + 1) * _size_input + (col + 1)] * gauss_3x3_sd3_diag;
         _output[row * _size_input + col] = sum;
     }
 }

@@ -1,43 +1,13 @@
 ﻿using System;
 using UnityEngine;
 
+public enum Gauss_SD {
+    SD1, SD2, SD3
+}
+
 public static class TerrainShader {
 
-    // public static float[] GaussianBlurGPU(ComputeShader computeShader, int sidelength, float[] input) {
-    //     //input has size*size elements
-    //     if (computeShader == null) throw new ArgumentNullException("Gaussian Blur Shader is not set in settings object");
-
-    //     // int groups = Mathf.CeilToInt(sidelength / 8f); // for a 8x8 2D workgroup
-
-    //     ComputeBuffer inputBuffer = new ComputeBuffer(input.GetLength(0), sizeof(float));
-    //     inputBuffer.SetData(input, 0, 0, input.GetLength(0));
-
-    //     // float[] flatKernel = GaussianKernel2DFlat(radius, weight);
-    //     // ComputeBuffer kernelBuffer = new ComputeBuffer(flatKernel.GetLength(0), sizeof(float));
-    //     // kernelBuffer.SetData(input, 0, 0, flatKernel.GetLength(0));
-
-    //     ComputeBuffer outputBuffer = new ComputeBuffer(input.GetLength(0), sizeof(float));
-    //     float[] output = new float[input.GetLength(0)];
-
-    //     int kernelID = computeShader.FindKernel("CSMain");
-    //     computeShader.SetInt("_size", sidelength);
-    //     // computeShader.SetBuffer(kernelID, "_kernel", kernelBuffer);
-    //     computeShader.SetBuffer(kernelID, "_input", inputBuffer);
-    //     computeShader.SetBuffer(kernelID, "_output", outputBuffer);
-
-
-    //     computeShader.GetKernelThreadGroupSizes(kernelID, out var threadGroupSize, out _, out _);
-    //     int threadGroups = (int)((input.GetLength(0) + (threadGroupSize - 1)) / threadGroupSize);
-    //     computeShader.Dispatch(kernelID, threadGroups, 1, 1);
-
-    //     outputBuffer.GetData(output);
-    //     inputBuffer.Release();
-    //     // kernelBuffer.Release();
-    //     outputBuffer.Release();
-    //     return output;
-    // }
-
-    public static void GaussianBlurGPU3x3SD1(ComputeShader computeShader, float[,] input, Mask mask, int passes, bool invertMask = false, bool add = true, bool multiplyFilter = false) {
+    public static void GaussianBlurGPU3x3(ComputeShader computeShader, float[,] input, Mask mask, int passes, Gauss_SD std, bool invertMask = false, bool add = true) {
         if (computeShader == null) throw new ArgumentNullException("Gaussian Shader is not set in settings object");
 
         int side_length = input.GetLength(0);
@@ -60,17 +30,12 @@ public static class TerrainShader {
         ComputeBuffer inputBuffer = new ComputeBuffer(side_length * side_length, sizeof(float));
         ComputeBuffer outputBuffer = new ComputeBuffer(side_length * side_length, sizeof(float));
 
-        // // prepare buffer zeroing kernel
-        // int zeroingKernel = computeShader.FindKernel("SetBufferZero");
-        // computeShader.GetKernelThreadGroupSizes(zeroingKernel, out var zeroingThreadGroupSize, out _, out _);
-        // int zeroingThreadGroups = Mathf.CeilToInt((side_length) * (side_length) / zeroingThreadGroupSize);
-
-        int kernelID;
-        if (add)
-            kernelID = multiplyFilter ? computeShader.FindKernel("GaussianBlurMultiplyKeep3x3SD1") : computeShader.FindKernel("GaussianBlurAddKeep3x3SD1");
-        else
-            kernelID = multiplyFilter ? computeShader.FindKernel("GaussianBlurMultiply3x3SD1") : computeShader.FindKernel("GaussianBlurAdd3x3SD1");
-
+        var kernelID = std switch {
+            Gauss_SD.SD1 => add ? computeShader.FindKernel("GaussianBlurKeep3x3SD1") : computeShader.FindKernel("GaussianBlur3x3SD1"),
+            Gauss_SD.SD2 => add ? computeShader.FindKernel("GaussianBlurKeep3x3SD2") : computeShader.FindKernel("GaussianBlur3x3SD2"),
+            Gauss_SD.SD3 => add ? computeShader.FindKernel("GaussianBlurKeep3x3SD3") : computeShader.FindKernel("GaussianBlur3x3SD3"),
+            _ => add ? computeShader.FindKernel("GaussianBlurKeep3x3SD1") : computeShader.FindKernel("GaussianBlur3x3SD1"),
+        };
 
         computeShader.GetKernelThreadGroupSizes(kernelID, out var threadGroupSize, out _, out _);
         int threadGroups = Mathf.CeilToInt((side_length) * (side_length) / threadGroupSize);
@@ -87,19 +52,11 @@ public static class TerrainShader {
 
         for (int n = 0; n < passes; n++) {
             if (n % 2 == 0) { // alternate between runs
-                // zero current output buffer
-                // computeShader.SetBuffer(zeroingKernel, "_zero_buffer", outputBuffer);
-                // computeShader.Dispatch(zeroingKernel, zeroingThreadGroups, 1, 1);
-
                 // set input/output buffers accordingly
                 computeShader.SetBuffer(kernelID, "_input", inputBuffer);
                 computeShader.SetBuffer(kernelID, "_output", outputBuffer);
                 computeShader.Dispatch(kernelID, threadGroups, 1, 1);
             } else {
-                // zero current output buffer
-                // computeShader.SetBuffer(zeroingKernel, "_zero_buffer", inputBuffer);
-                // computeShader.Dispatch(zeroingKernel, zeroingThreadGroups, 1, 1);
-
                 // set input/output buffers accordingly
                 computeShader.SetBuffer(kernelID, "_input", outputBuffer);
                 computeShader.SetBuffer(kernelID, "_output", inputBuffer);
