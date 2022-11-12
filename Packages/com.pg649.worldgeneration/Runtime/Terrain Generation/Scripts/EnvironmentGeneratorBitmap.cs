@@ -67,7 +67,7 @@ public class EnvironmentGeneratorBitmap {
         // sw.Reset();
 
         sw.Restart();
-        TerrainShader.GaussianBlurGPU3x3SD1(computeShader, input: heights, 1000);
+        // TerrainShader.GaussianBlurGPU3x3SD1(computeShader, input: heights, 1000);
         sw.Stop();
         Debug.Log("Runtime Gauss Compute Shader:\t " + sw.Elapsed);
         sw.Reset();
