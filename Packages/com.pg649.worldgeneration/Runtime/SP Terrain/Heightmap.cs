@@ -27,16 +27,16 @@ public class Heightmap {
         // Debug.Log("Runtime AverageFilter CPU:\t " + sw.Elapsed);
         // sw.Reset();
     }
-    public void AverageFilterGPU(ComputeShader averageShader, Mask mask = null, int numberOfRuns = 1) {
-        //System.Diagnostics.Stopwatch sw = new();
-        //sw.Restart();
-        TerrainShader.AverageFilterGPU3x3(averageShader, input: heights, mask: mask, passes: numberOfRuns);
-        //sw.Stop();
-        //Debug.Log("Runtime AverageFilter GPU:\t " + sw.Elapsed);
-        //sw.Reset();
+    public void AverageFilterGPU(Mask mask = null, int numberOfRuns = 1) {
+        // System.Diagnostics.Stopwatch sw = new();
+        // sw.Restart();
+        TerrainShader.AverageFilterGPU3x3(input: heights, mask: mask, passes: numberOfRuns);
+        // sw.Stop();
+        // Debug.Log("Runtime AverageFilter GPU:\t " + sw.Elapsed);
+        // sw.Reset();
     }
-    public void GaussianBlur(ComputeShader gaussian, Mask mask = null, int numberOfRuns = 1, Gauss_SD std = Gauss_SD.SD1) {
-        TerrainShader.GaussianBlurGPU3x3(gaussian, input: heights, mask: mask, passes: numberOfRuns, std: std);
+    public void GaussianBlur(Mask mask = null, int numberOfRuns = 1, Gauss_SD std = Gauss_SD.SD1) {
+        TerrainShader.GaussianBlurGPU3x3(input: heights, mask: mask, passes: numberOfRuns, std: std);
     }
     public void Power(float power, Mask mask = null) {
         MapI(f => Mathf.Pow(f, power), mask);

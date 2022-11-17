@@ -275,7 +275,6 @@ MonoBehaviour:
   maskNull: 0
   numberOfRuns: 600
   useGPU: 1
-  averageShader: {fileID: 7200000, guid: 9e2c6f8713ea54bff8ac55365273136d, type: 3}
 --- !u!114 &1189246407
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -317,7 +316,6 @@ MonoBehaviour:
   maskNull: 0
   numberOfRuns: 4
   useGPU: 1
-  averageShader: {fileID: 7200000, guid: 9e2c6f8713ea54bff8ac55365273136d, type: 3}
 --- !u!114 &1189246409
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,7 +397,6 @@ MonoBehaviour:
   maskNull: 0
   numberOfRuns: 4
   useGPU: 1
-  averageShader: {fileID: 7200000, guid: 9e2c6f8713ea54bff8ac55365273136d, type: 3}
 --- !u!1 &1215729230
 GameObject:
   m_ObjectHideFlags: 0

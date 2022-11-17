@@ -7,7 +7,8 @@ public enum Gauss_SD {
 
 public static class TerrainShader {
 
-    public static void GaussianBlurGPU3x3(ComputeShader computeShader, float[,] input, Mask mask, int passes, Gauss_SD std, bool invertMask = false, bool add = true) {
+    public static void GaussianBlurGPU3x3(float[,] input, Mask mask, int passes, Gauss_SD std, bool invertMask = false, bool add = true) {
+        ComputeShader computeShader = Resources.Load<ComputeShader>("ComputeShader/GaussianBlur");
         if (computeShader == null) throw new ArgumentNullException("Gaussian Shader is not set in settings object");
 
         int side_length = input.GetLength(0);
@@ -79,7 +80,8 @@ public static class TerrainShader {
         outputBuffer.Release();
     }
 
-    public static void AverageFilterGPU3x3(ComputeShader computeShader, float[,] input, Mask mask, int passes, bool invertMask = false, bool add = true, bool multiplyFilter = false) {
+    public static void AverageFilterGPU3x3(float[,] input, Mask mask, int passes, bool invertMask = false, bool add = true, bool multiplyFilter = false) {
+        ComputeShader computeShader = Resources.Load<ComputeShader>("ComputeShader/AverageFilter");
         if (computeShader == null) throw new ArgumentNullException("Average Shader is not set in settings object");
 
         int side_length = input.GetLength(0);
