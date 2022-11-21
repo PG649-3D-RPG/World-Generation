@@ -39,6 +39,7 @@ public class DungeonRoom : IGameObjectable{
     private System.Random rand;
     private Vector3Int roomPoint;
     private int type;
+    private List<Tuple<Vector3Int,int>> spawnPoints;
 
 
     public enum Face{
@@ -53,9 +54,10 @@ public class DungeonRoom : IGameObjectable{
         this.roomPoint = roomPoint;
         free = new bool[width,depth];
         free.MapI<bool>(x => true);
-        rand ??= new System.Random();
+        this.rand = rand == null ? new System.Random() : rand;
         corridorPoints = new List<Tuple<Face,int,int>>();
         this.type = 0;
+        this.spawnPoints = new List<Tuple<Vector3Int,int>>();
     }
     public DungeonRoom(IEnumerable<int> x, Vector3Int roomPoint, System.Random rand = null) : this(x.ToArray()[0],x.ToArray()[1],x.ToArray()[2], roomPoint, rand : rand){}
 
@@ -179,6 +181,40 @@ public class DungeonRoom : IGameObjectable{
              }
         }
     }
+    public void AddRelativeSpawnPoint(int x, int z, int size){
+        spawnPoints.Add(new Tuple<Vector3Int, int>(new Vector3Int(roomPoint.x + x, roomPoint.y, roomPoint.z + z), size)); 
+    }
+    public void CreateSpawnPoint(int size){
+        float[,] a = free.Map(x => x ? 0f : 1f);
+        //HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilter);
+        if(size > 0){
+            for(int i = 0; i < a.GetLength(0); i++){
+                a[i,0] = 1f;
+                a[i,a.GetLength(1)-1] = 1f;
+            }
+            for(int j = 0; j < a.GetLength(1); j++){
+                a[0,j] = 1f;
+                a[a.GetLength(0)-1,j] = 1f;
+            }
+            for(int k = 0; k < size-1; k++) HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilter);
+        }
+        List<Tuple<int,int>> l = new List<Tuple<int,int>>();
+        for(int i = 0; i < a.GetLength(0); i++){
+            for(int j = 0; j < a.GetLength(1); j++){
+                if(a[i,j] == 0f) l.Add(new Tuple<int,int>(i,j));
+            }
+        }
+        if(l.Count > 0){
+            int index = rand.Next(0, l.Count);
+            Tuple<int,int> t = l[index];
+            for(int k = t.Item1 - size; k <= t.Item1 + size; k++){
+                for(int m = t.Item2 - size; m <= t.Item2 + size; m++){
+                    free[k,m] = false;
+                }
+            }
+            AddRelativeSpawnPoint(t.Item1, t.Item2, size);
+        }
+    }
 
     public Mesh ToMesh(){
         Mesh mesh = new Mesh();
@@ -268,6 +304,9 @@ public class DungeonRoom : IGameObjectable{
     public int Type{
         get{return type;}
         set{type = value;}
+    }
+    public List<Tuple<Vector3Int,int>> SpawnPoints{
+        get{return spawnPoints;}
     }
 }
 public class DungeonRoomMeta : MonoBehaviour{
@@ -817,6 +856,21 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         }
     }
 
+    public void CreateSpawnPoints(int spawnPointsPerRoom, int size){
+        if(node.Room != null){
+            for(int i = 0; i < spawnPointsPerRoom; i++) node.Room.CreateSpawnPoint(size);
+        }
+        foreach(DungeonTreeT c in children) c.CreateSpawnPoints(spawnPointsPerRoom, size);
+    }
+    public List<Tuple<Vector3Int, int>> SpawnPoints(){
+        List<Tuple<Vector3Int, int>> l = new List<Tuple<Vector3Int, int>>();
+        if(node.Room != null) l.AddRange(node.Room.SpawnPoints);
+        foreach(DungeonTreeT c in children){
+            l.AddRange(c.SpawnPoints());
+        }
+        return l;
+    }
+
 
     public GameObject ToGameObject(bool terrain = false){
         GameObject go = new GameObject("DungeonTreeT");
@@ -877,5 +931,4 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         return new TerrainMasks(RoomsMask(), RoomsFreeMask(), CorridorsMask(), typeMasks);
     }
 
-}   
-
+}

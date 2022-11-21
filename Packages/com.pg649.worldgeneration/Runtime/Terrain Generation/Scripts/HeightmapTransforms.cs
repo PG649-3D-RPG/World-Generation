@@ -34,8 +34,20 @@ public static class HeightmapTransforms
                 else if(add) b[i,j] = a[i,j];
             }
         }
-        //fix
-        for(int i = 0; i < a.GetLength(0); i++) for(int j = 0; j < a.GetLength(1); j++) a[i,j] = b[i,j];
+        // if(add){
+        //     for(int i = 0; i < fw/2; i++){
+        //         for(int j = 0; j < fh/2; j++){
+        //             b[i,j] = a[i,j];
+        //         }
+        //     }
+        //     for(int i = a.GetLength(0)-(fw/2); i < a.GetLength(0); i++){
+        //         for(int j = a.GetLength(1)-(fh/2); j <  a.GetLength(1); j++){
+        //             b[i,j] = a[i,j];
+        //         }
+        //     }
+        // }
+        if(add) for(int i = fw/2; i < a.GetLength(0)-(fw/2); i++) for(int j = fh/2; j < a.GetLength(1)-(fh/2);j++) a[i,j] = b[i,j];
+        else for(int i = 0; i < a.GetLength(0); i++) for(int j = 0; j < a.GetLength(1); j++) a[i,j] = b[i,j];
     }
 
     public static void ApplyPerlinNoise(float[,] a, float maxAddedHeight = 1, float scale = .1f, Mask mask = null, bool invertMask = false, int fractalRuns = 1){
@@ -43,9 +55,11 @@ public static class HeightmapTransforms
             for(int j = 0; j < a.GetLength(1); j++){
                 if(mask == null || (mask[i,j] && !invertMask) || (invertMask && !mask[i,j]) ){
                     float amp = maxAddedHeight;
+                    float s = scale;
                     for(int k = 0; k < fractalRuns; k++){
                         a[i,j] += Mathf.PerlinNoise(i*scale, j*scale) * amp;
                         amp *= 0.5f;
+                        s*=2;
                     }
                 }
             }

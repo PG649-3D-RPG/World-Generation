@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Unity.AI.Navigation;
+using System.IO;
 
 public class SPTC_Base : MonoBehaviour
 {
@@ -20,13 +21,17 @@ public class SPTC_Base : MonoBehaviour
     public int frontBackMinMargin = 11;
     public int frontBackMaxMargin = 16;
     public int levelPlacementProbability = 60;
+    [Header("Level Options")]
     public int numberOfTypes = 1;
+    public int spawnPointsPerRoom = 1;
+    public int spawnPointSize = 1;
     [Header("Corridors")]
     public int minCorridorWidth = 6;
     public int maxCorridorWidth = 10;
     public float minCorridorHeight = 2;
     public float maxCorridorHeight = 3;
     public float maxDistance = 32;
+    
 
     void Start()
     {
@@ -52,6 +57,7 @@ public class SPTC_Base : MonoBehaviour
         dTree.PlaceRooms(levelPlacementProbability);
         dTree.PlaceCorridors(minCorridorWidth, maxCorridorWidth, minCorridorHeight, maxCorridorHeight, maxDistance : maxDistance);
         dTree.AssignTypes(numberOfTypes);
+        dTree.CreateSpawnPoints(spawnPointsPerRoom, spawnPointSize);
 
         Heightmap heightmap = new Heightmap(size);
 
@@ -66,7 +72,11 @@ public class SPTC_Base : MonoBehaviour
         heightmap.AddTerrainToGameObject(tgo);
         NavMeshSurface nms = tgo.GetComponent<NavMeshSurface>();
         if (nms == null) nms = tgo.AddComponent<NavMeshSurface>();
+        nms.minRegionArea = 50f;
         nms.BuildNavMesh();
-        
-    }
+
+        Texture2D t = (tm.levelsFree + tm.corridors).ToTexture();
+        byte[] bytes = ImageConversion.EncodeArrayToPNG(t.GetRawTextureData(), t.graphicsFormat, (uint)t.width, (uint)t.height);
+        File.WriteAllBytes(Application.dataPath + "/test.png", bytes);
+}
 }

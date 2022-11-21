@@ -57,7 +57,7 @@ public class Mask
     public float[,] ToFloatArray(){
         return m.Map(x => x ? 1f : 0f);
     }
-    public Texture2D ToTexture(bool[,] m){
+    public Texture2D ToTexture(){
         Texture2D t = new Texture2D(width, height, TextureFormat.RGBA32, false);
         for(int i = 0; i < m.GetLength(0); i ++){
             for(int j = 0; j < m.GetLength(1); j++){

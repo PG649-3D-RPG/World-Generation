@@ -50,7 +50,6 @@ public class Heightmap {
         }
     }
 
-
     public void AddTerrainToGameObject(GameObject go) {
         Terrain terrain = go.AddComponent<Terrain>();
         terrain.terrainData = new TerrainData();
