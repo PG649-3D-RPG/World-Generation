@@ -4,5 +4,8 @@
     "displayName": "PG649 World Generation",
     "description": "World Generation PG649.",
     "unity": "2021.3",
-    "unityRelease": "3f1"
+    "unityRelease": "3f1",
+    "dependencies": {
+        "com.unity.ai.navigation": "1.0.0-exp.4"
+    }
 }

@@ -1,0 +1,86 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel GaussianBlur3x3SD1Acc
+
+#define KERNEL_TOPLEFT 0
+#define KERNEL_TOP 1
+#define KERNEL_TOPRIGHT 2
+#define KERNEL_LEFT 3
+#define KERNEL_MID 4
+#define KERNEL_RIGHT 5
+#define KERNEL_BOTTOMLEFT 6
+#define KERNEL_BOTTOM 7
+#define KERNEL_BOTTOMRIGHT 8
+
+static const float gauss_3x3_sd1_diag = 0.07511362;
+static const float gauss_3x3_sd1_next = 0.1238414;
+static const float gauss_3x3_sd1_center = 0.20418;
+
+uint _size;
+StructuredBuffer<float> _input;
+RWStructuredBuffer<float> _output;
+StructuredBuffer<float> _kernel;
+
+[numthreads(256,1,1)]
+void GaussianBlur3x3SD1Acc (uint3 id : SV_DispatchThreadID)
+{
+    float sum = 0;
+    uint col = id.x % _size; // modulo => column
+    uint row = id.x / _size; // integer division => row
+
+    // 9 fields to consider
+    bool out_bounds_top_l = col-1 < 0 || row-1 < 0; // * kernel[0,0]
+    bool out_bounds_top = row-1 < 0; // * kernel[1,0]
+    bool out_bounds_top_r = col-1 < 0 || row+1 > _size-1; // * kernel[2,0]
+
+    bool out_bounds_mid_l = col-1 < 0; // * kernel[0,1]
+    // bool out_bounds_mid = row-1 < 0; // mid mid is never out of bounds // * kernel[1,1]
+    bool out_bounds_mid_r = col+1 > _size-1; // * kernel[2,1]
+
+    bool out_bounds_bot_l = col-1 < 0 || row+1 > _size-1; // * kernel[0,2]
+    bool out_bounds_bot = row+1 > _size-1; // * kernel[1,2]
+    bool out_bounds_bot_r = col+1 > _size-1 || row+1 > _size-1; // * kernel[2,2]
+
+    if(out_bounds_top_l) {
+        sum += _input[row]* gauss_3x3_sd1_diag;
+    } else {
+        sum += _input[(row - 1) * _size + (col - 1)] * gauss_3x3_sd1_diag;
+    }
+    if(out_bounds_top){
+        sum += _input[col]* gauss_3x3_sd1_next;
+    } else {
+        sum += _input[(row - 1) * _size + (col)] * gauss_3x3_sd1_next;
+    }
+    if(out_bounds_top_r){
+        sum += _input[col]* gauss_3x3_sd1_diag;
+    } else {
+        sum += _input[(row - 1) * _size + (col + 1)] * gauss_3x3_sd1_diag;
+    }
+    if(out_bounds_mid_l){
+        sum += _input[row]* gauss_3x3_sd1_next;
+    } else {
+        sum += _input[(row) * _size + (col - 1)] * gauss_3x3_sd1_next;
+    }
+    if(out_bounds_mid_r){
+        sum += _input[row+col]* gauss_3x3_sd1_next;
+    } else {
+        sum += _input[(row) * _size + (col + 1)] * gauss_3x3_sd1_next;
+    }
+    if(out_bounds_bot_l){
+        sum += _input[row]* gauss_3x3_sd1_diag;
+    } else {
+        sum += _input[(row+1) * _size + (col - 1)] * gauss_3x3_sd1_diag;
+    }
+    if(out_bounds_bot){
+        sum += _input[row+col]* gauss_3x3_sd1_next;
+    } else {
+        sum += _input[(row+1) * _size + (col)] * gauss_3x3_sd1_next;
+    }
+    if(out_bounds_bot_r){
+        sum += _input[row+col]* gauss_3x3_sd1_diag;
+    } else {
+        sum += _input[(row+1) * _size + (col + 1)] * gauss_3x3_sd1_diag;
+    }
+    sum += _input[row+col]*gauss_3x3_sd1_center;
+
+    _output[row*_size+col] = sum;
+}
