@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using Unity.AI.Navigation;
 using UnityEngine;
 
 public class WorldGenerator {
 
-    public static GameObject Generate(WorldGeneratorSettings settings) {
+    public static Tuple<GameObject, List<Tuple<Vector3Int, int>>> Generate(WorldGeneratorSettings settings) {
         int[] spsize = new int[] { settings.size, settings.size };
         int[] minSize = new int[] { settings.minPartitionWidth, settings.minPartitionDepth };
         Tuple<int, int>[] minMaxMargin = new Tuple<int, int>[] { new Tuple<int, int>(settings.leftRightMinMargin, settings.leftRightMaxMargin), new Tuple<int, int>(settings.frontBackMinMargin, settings.frontBackMaxMargin) };
@@ -48,8 +49,9 @@ public class WorldGenerator {
         if (nms == null) nms = tgo.AddComponent<NavMeshSurface>();
         nms.BuildNavMesh();
 
-        TerrainCollider col = tgo.AddComponent<TerrainCollider>();
+        TerrainCollider col = tgo.GetComponent<TerrainCollider>();
+        if (col == null) col = tgo.AddComponent<TerrainCollider>();
         col.terrainData = tgo.GetComponent<Terrain>().terrainData;
-        return tgo;
+        return new(tgo, dTree.SpawnPoints());
     }
 }
