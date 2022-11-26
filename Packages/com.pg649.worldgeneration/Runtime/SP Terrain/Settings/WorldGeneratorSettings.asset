@@ -22,7 +22,7 @@ MonoBehaviour:
   leftRightMaxMargin: 48
   frontBackMinMargin: 24
   frontBackMaxMargin: 48
-  levelPlacementProbability: 76
+  levelPlacementProbability: 100
   numberOfTypes: 1
   spawnPointsPerRoom: 3
   spawnPointSize: 2

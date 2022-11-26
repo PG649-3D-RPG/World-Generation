@@ -189,7 +189,7 @@ MonoBehaviour:
   leftRightMaxMargin: 48
   frontBackMinMargin: 24
   frontBackMaxMargin: 48
-  levelPlacementProbability: 76
+  levelPlacementProbability: 100
   numberOfTypes: 1
   spawnPointsPerRoom: 3
   spawnPointSize: 2
@@ -232,7 +232,7 @@ MonoBehaviour:
   invertMask: 0
   maskNull: 0
   numberOfRuns: 600
-  averageShader: {fileID: 7200000, guid: 9e2c6f8713ea54bff8ac55365273136d, type: 3}
+  useGPU: 1
 --- !u!114 &160405130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -313,7 +313,7 @@ MonoBehaviour:
   invertMask: 0
   maskNull: 0
   numberOfRuns: 15
-  averageShader: {fileID: 7200000, guid: 9e2c6f8713ea54bff8ac55365273136d, type: 3}
+  useGPU: 1
 --- !u!114 &160405134
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -56,7 +56,6 @@ public class DungeonTreeNode : SPTreeNode{
         for(int i = 0; i < Dim; i++){
             minMaxMargin[i] = new Tuple<int,int>(0,0);
         }
-        //fHeight = fHeightSizeBased();
         corridors = new List<DungeonCorridor>();
         roomsNorth = new(); roomsEast = new(); roomsSouth = new(); roomsWest = new(); roomsBelow = new(); roomsAbove = new();
         numberOfTypes = 1;

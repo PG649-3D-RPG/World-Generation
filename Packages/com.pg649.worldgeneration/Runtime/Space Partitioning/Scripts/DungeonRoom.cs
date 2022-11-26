@@ -9,10 +9,12 @@ public class DungeonRoom : IGameObjectable{
     private List<DungeonCorridor> corridors;
     private List<Tuple<Face,int,int>> corridorPoints;
     private bool[,] free;
+    private Mask paths; 
     private System.Random rand;
     private Vector3Int roomPoint;
     private int type;
     private List<Tuple<Vector3Int,int>> spawnPoints;
+    private List<Tuple<Placeable, Vector3Int, int, int>> placeables;
 
 
     public enum Face{
@@ -27,6 +29,8 @@ public class DungeonRoom : IGameObjectable{
         this.roomPoint = roomPoint;
         free = new bool[width,depth];
         free.MapI<bool>(x => true);
+        paths = new Mask(width, depth);
+        placeables = new List<Tuple<Placeable, Vector3Int, int, int>>();
         this.rand = rand == null ? new System.Random() : rand;
         corridorPoints = new List<Tuple<Face,int,int>>();
         this.type = 0;
@@ -34,76 +38,86 @@ public class DungeonRoom : IGameObjectable{
     }
     public DungeonRoom(IEnumerable<int> x, Vector3Int roomPoint, System.Random rand = null) : this(x.ToArray()[0],x.ToArray()[1],x.ToArray()[2], roomPoint, rand : rand){}
 
-    //doesnt work if both points are on the same boundary
-    public void SetFreePath(Face f1, Face f2, int p1, int p2, int width){
-        (int,int) rp1 = FacePointIndex(f1,p1);
-        (int,int) rp2 = FacePointIndex(f2,p2);
-        (int,int) p = rp1;
-        if((f2 == Face.Left || f2 == Face.Right) && (f1 == Face.Back || f1 == Face.Front)){
-            Face ft = f1;
-            int pt = p1;
-            (int,int) rpt = rp1;
-            f1 = f2;
-            f2 = ft;
-            p1 = p2;
-            p2 = pt;
-            rp1 = rp2;
-            rp2 = rpt;
-        }
-        if((f1 == Face.Left || f1 == Face.Right) && (f2 == Face.Left || f2 == Face.Right)){
-            //fix            
-            int mid = width/2;
-            int dir = rp2.Item1 - rp1.Item1 == 0 ? 1 : (rp2.Item1 - rp1.Item1) / Math.Abs((rp2.Item1 - rp1.Item1));
-            while(p.Item1 != mid){
-                for(int k = 0; k < width; k++) free[p.Item1,p.Item2+k] = false;
-                p.Item1 += dir;
+    public void SetFreePath(Face f1, Face f2, int p1, int p2, int pathWidth1, int pathWidth2){
+        if(f1 == f2) throw new NotImplementedException("SetFreePath is not implemented for connecting two points on the same face.");
+        if(((f1 == Face.Left || f1 == Face.Right) && (f2 == Face.Left || f2 == Face.Right)) || ((f1 == Face.Front || f1 == Face.Back) && (f2 == Face.Front || f2 == Face.Back))){
+            if((f2 == Face.Left || f2 == Face.Front)){
+                Face ft = f1;
+                int pt = p1;
+                int pathWidtht = pathWidth1;
+                f1 = f2;
+                f2 = ft;
+                p1 = p2;
+                p2 = pt;
+                pathWidth1 = pathWidth2;
+                pathWidth2 = pathWidtht;
             }
-            int dir2 = rp2.Item2 - rp1.Item2 == 0 ? 1 : (rp2.Item2 - rp1.Item2) / Math.Abs((rp2.Item2 - rp1.Item2));
-            if(dir2 == -1) p.Item2 = Math.Min(p.Item2 + width -1 , depth-1);
-            while(p.Item2 != rp2.Item2){
-                for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
-                p.Item2 += dir2;
+            (int,int) rp1 = FacePointIndex(f1,p1);
+            (int,int) rp2 = FacePointIndex(f2,p2);
+            (int,int) p = rp1;
+            if(f2 == Face.Right){
+                int mid = rand.Next(0,width-pathWidth2-1);
+                while(p.Item1 != mid){
+                    for(int k = 0; k < pathWidth1; k++) free[p.Item1,p.Item2+k] = false;
+                    p.Item1 += 1;
+                }
+                int dir2 = rp2.Item2 - rp1.Item2 == 0 ? 1 : (rp2.Item2 - rp1.Item2) / Math.Abs((rp2.Item2 - rp1.Item2));
+                if(dir2 == -1) p.Item2 = Math.Min(p.Item2 + pathWidth1 -1 , depth-1);
+                while(p.Item2 != rp2.Item2){
+                    for(int k = 0; k < pathWidth2; k++) free[p.Item1+k,p.Item2] = false;
+                        p.Item2 += dir2;
+                }
+                while(p.Item1 <= rp2.Item1){
+                    for(int k = 0; k < pathWidth2; k++) free[p.Item1,p.Item2+k] = false;
+                    p.Item1 += 1;
+                }
             }
-            if(dir2 == -1) p.Item2 += 1;
-            while(p.Item1 != rp2.Item1){
-                for(int k = 0; k < width; k++) free[p.Item1,p.Item2+k] = false;
-                p.Item1 += dir;
+            else{
+                int mid = rand.Next(0,depth-pathWidth2-1);
+                while(p.Item2 != mid){
+                    for(int k = 0; k < pathWidth1; k++) free[p.Item1 + k,p.Item2] = false;
+                    p.Item2 += 1;
+                }
+                int dir2 = rp2.Item1 - rp1.Item1 == 0 ? 1 : (rp2.Item1 - rp1.Item1) / Math.Abs((rp2.Item1 - rp1.Item1));
+                if(dir2 == -1) p.Item1 = Math.Min(p.Item1 + pathWidth1 -1 , width-1);
+                while(p.Item1 != rp2.Item1){
+                    for(int k = 0; k < pathWidth2; k++) free[p.Item1,p.Item2 + k] = false;
+                    p.Item1 += dir2;
+                }
+                while(p.Item2 <= rp2.Item2){
+                    for(int k = 0; k < pathWidth2; k++) free[p.Item1 + k,p.Item2] = false;
+                    p.Item2 += 1;
+                }
             }
-            for(int k = 0; k < width; k++) free[p.Item1,p.Item2+k] = false;
-        }
-        else if((f1 == Face.Front || f1 == Face.Back) && (f2 == Face.Front || f2 == Face.Back)){
-            //fix            
-            int mid = depth/2;
-            int dir = rp2.Item2 - rp1.Item2 == 0 ? 1 : (rp2.Item2 - rp1.Item2) / Math.Abs((rp2.Item2 - rp1.Item2));
-            while(p.Item2 != mid){
-                for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
-                p.Item2 += dir;
-            }
-            int dir2 = rp2.Item1 - rp1.Item1 == 0 ? 1 : (rp2.Item1 - rp1.Item1) / Math.Abs((rp2.Item1 - rp1.Item1));
-            if(dir2 == -1) p.Item2 = Math.Min(p.Item2 + width -1 , depth-1);
-            while(p.Item1 != rp2.Item1){
-                for(int k = 0; k < width; k++) free[p.Item1,p.Item2+k] = false;
-                p.Item1 += dir2;
-            }
-            while(p.Item2 != rp2.Item2){
-                for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
-                p.Item2 += dir;
-            }
-            for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
+           
         }
         else{
+            if(f1 == Face.Front || f1 == Face.Back){
+                Face ft = f1;
+                int pt = p1;
+                int pathWidtht = pathWidth1;
+                f1 = f2;
+                f2 = ft;
+                p1 = p2;
+                p2 = pt;
+                pathWidth1 = pathWidth2;
+                pathWidth2 = pathWidtht;
+            }
+            (int,int) rp1 = FacePointIndex(f1,p1);
+            (int,int) rp2 = FacePointIndex(f2,p2);
+            (int,int) p = rp1;
             int dir = rp2.Item1 - rp1.Item1 == 0 ? 1 : (rp2.Item1 - rp1.Item1) / Math.Abs((rp2.Item1 - rp1.Item1));
             while(p.Item1 != rp2.Item1){
-                for(int k = 0; k < width; k++) free[p.Item1,p.Item2+k] = false;
-                p.Item1 += dir;
+                for(int k = 0; k < pathWidth1; k++) free[p.Item1, p.Item2 + k] = false;
+                p.Item1 += dir; 
             }
             int dir2 = rp2.Item2 - rp1.Item2 == 0 ? 1 : (rp2.Item2 - rp1.Item2) / Math.Abs((rp2.Item2 - rp1.Item2));
-            if(dir2 == -1) p.Item2 = Math.Min(p.Item2 + width -1 , depth-1);
+            if(dir2 == -1) p.Item2 = Math.Min(p.Item2 + pathWidth1 -1 , depth-1);
             while(p.Item2 != rp2.Item2){
-                for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
+                for(int k = 0; k < pathWidth2; k++) free[p.Item1+k,p.Item2] = false;
                 p.Item2 += dir2;
             }
-            for(int k = 0; k < width; k++) free[p.Item1+k,p.Item2] = false;
+            for(int k = 0; k < pathWidth2; k++) free[p.Item1+k,p.Item2] = false;
         }
     }
 
@@ -150,7 +164,7 @@ public class DungeonRoom : IGameObjectable{
         corridorPoints.Add(t);
         foreach(Tuple<Face, int,int> tp in corridorPoints){
              if(tp.Item1 != t.Item1){
-                SetFreePath(tp.Item1, t.Item1, tp.Item2, t.Item2, Math.Min(t.Item3, tp.Item3));
+                SetFreePath(tp.Item1, t.Item1, tp.Item2, t.Item2, tp.Item3, t.Item3);
              }
         }
     }

@@ -5,7 +5,15 @@ public interface IGameObjectable{
     public GameObject ToGameObject();
 }
 
-public interface IPlaceable : IGameObjectable{
+public abstract class Placeable : IGameObjectable{
+
+    public GameObject CenteredGameObject(){
+        GameObject go = ToGameObject();
+
+        return go;
+    }
+    public abstract GameObject ToGameObject();
+
     public int Width{get;}
     public int Height{get;}
 }
