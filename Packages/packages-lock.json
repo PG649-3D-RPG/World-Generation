@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.pg649.creaturegenerator": {
+      "version": "https://github.com/PG649-3D-RPG/Creature-Generation.git?path=/Packages/com.pg649.creaturegenerator#dev",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "7edcd92fd661138493e127777f62bd20d4e1c35e"
+    },
     "com.pg649.worldgeneration": {
       "version": "file:com.pg649.worldgeneration",
       "depth": 0,

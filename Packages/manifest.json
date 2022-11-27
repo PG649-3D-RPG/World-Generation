@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.pg649.creaturegenerator": "https://github.com/PG649-3D-RPG/Creature-Generation.git?path=/Packages/com.pg649.creaturegenerator#dev",
     "com.unity.ai.navigation": "1.0.0-exp.4",
     "com.unity.collab-proxy": "1.15.16",
     "com.unity.feature.development": "1.0.1",
