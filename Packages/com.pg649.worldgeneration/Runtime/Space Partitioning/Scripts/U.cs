@@ -14,8 +14,8 @@ public abstract class Placeable : IGameObjectable{
     }
     public abstract GameObject ToGameObject();
 
-    public int Width{get;}
-    public int Height{get;}
+    public abstract int Width{get;}
+    public abstract int Height{get;}
 }
 
 public static class TreeExtensionUnity{
