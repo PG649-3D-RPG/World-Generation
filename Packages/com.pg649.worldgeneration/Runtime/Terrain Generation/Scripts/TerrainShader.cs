@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public enum Gauss_SD {
@@ -165,4 +167,144 @@ public static class TerrainShader {
         inputBuffer.Release();
         outputBuffer.Release();
     }
+
+    private static void AverageFilterMT3x3Worker(int id, int _size_input, float[] _input, float[] _output) {
+        const float avg_3x3 = 1 / (float)9;
+        int row = id / _size_input; // integer division => row
+        int col = id % _size_input; // modulo => column
+
+        float sum = 0;
+
+        sum += _input[(row - 1) * _size_input + (col - 1)] * avg_3x3;
+        sum += _input[(row - 1) * _size_input + (col)] * avg_3x3;
+        sum += _input[(row - 1) * _size_input + (col + 1)] * avg_3x3;
+        sum += _input[(row) * _size_input + (col - 1)] * avg_3x3;
+        sum += _input[(row) * _size_input + (col)] * avg_3x3;
+        sum += _input[(row) * _size_input + (col + 1)] * avg_3x3;
+        sum += _input[(row + 1) * _size_input + (col - 1)] * avg_3x3;
+        sum += _input[(row + 1) * _size_input + (col)] * avg_3x3;
+        sum += _input[(row + 1) * _size_input + (col + 1)] * avg_3x3;
+        _output[row * _size_input + col] = sum;
+    }
+
+    public static void AverageFilterMT3x3(float[,] input, Mask mask, int passes, bool invertMask = false) {
+        int side_length = input.GetLength(0);
+
+        // linearize heights and mask
+        float[] heightsFlat = new float[side_length * side_length];
+        float[] heightsFlat2 = new float[side_length * side_length];
+
+        var workItems = new List<int>();
+
+        for (int i = 0; i < side_length; i++) {
+            for (int j = 0; j < side_length; j++) {
+                heightsFlat[i * side_length + j] = input[i, j];
+                heightsFlat2[i * side_length + j] = input[i, j];
+            }
+        }
+        // compute work items via mask
+        for (int i = 1; i < side_length - 1; i++) {
+            for (int j = 1; j < side_length - 1; j++) {
+                if (mask == null || (mask[i, j] && !invertMask) || (invertMask && !mask[i, j])) workItems.Add(i * side_length + j);
+            }
+        }
+
+        var workItemsArr = workItems.ToArray();
+
+        // only process workitem indices -> multithread that work array
+        for (int n = 0; n < passes; n++) {
+            if (n % 2 == 0) {
+                Parallel.For(0, workItemsArr.Length, i => { AverageFilterMT3x3Worker(workItemsArr[i], side_length, heightsFlat, heightsFlat2); });
+            } else {
+                Parallel.For(0, workItemsArr.Length, i => { AverageFilterMT3x3Worker(workItemsArr[i], side_length, heightsFlat2, heightsFlat); });
+            }
+        }
+
+        // get the data from the correct buffer
+        if (passes % 2 == 0) heightsFlat = heightsFlat2;
+
+        // expand result
+        for (int i = 0; i < side_length; i++) {
+            for (int j = 0; j < side_length; j++) {
+                input[i, j] = heightsFlat[i * (side_length) + j];
+            }
+        }
+    }
+    // private static void AverageFilterAVX3x3Worker(int4 id, int _size_input, float[] _input, float[] _output) {
+    //     const float avg_3x3 = 1 / (float)9;
+    //     int4 row = id / _size_input; // integer division => row
+    //     int4 col = id % _size_input; // modulo => column
+
+    //     float4 sum = 0;
+
+    //     sum += _input[(row - 1) * _size_input + (col - 1)] * avg_3x3;
+    //     sum += _input[(row - 1) * _size_input + (col)] * avg_3x3;
+    //     sum += _input[(row - 1) * _size_input + (col + 1)] * avg_3x3;
+    //     sum += _input[(row) * _size_input + (col - 1)] * avg_3x3;
+    //     sum += _input[(row) * _size_input + (col)] * avg_3x3;
+    //     sum += _input[(row) * _size_input + (col + 1)] * avg_3x3;
+    //     sum += _input[(row + 1) * _size_input + (col - 1)] * avg_3x3;
+    //     sum += _input[(row + 1) * _size_input + (col)] * avg_3x3;
+    //     sum += _input[(row + 1) * _size_input + (col + 1)] * avg_3x3;
+    //     _output[row * _size_input + col] = sum;
+    // }
+
+    // public static void AverageFilterAVX3x3(float[,] input, Mask mask, int passes, bool invertMask = false) {
+    //     int side_length = input.GetLength(0);
+
+    //     // linearize heights and mask
+    //     float[] heightsFlat = new float[side_length * side_length];
+
+    //     var workItems = new List<int>();
+
+    //     for (int i = 0; i < side_length; i++) {
+    //         for (int j = 0; j < side_length; j++) {
+    //             heightsFlat[i * side_length + j] = input[i, j];
+    //         }
+    //     }
+    //     // pack heights
+    //     int heightsPackCount = Mathf.CeilToInt(side_length * side_length / 4f);
+    //     var heightsFlatPacks = new float4[heightsPackCount];
+    //     var heightsFlatPacks2 = new float4[heightsPackCount];
+    //     for (int i = 0; i < heightsPackCount; i += 4) {
+    //         var pack = new float4(heightsFlat[i], heightsFlat[i + 1], heightsFlat[i + 2], heightsFlat[i + 3]);
+    //         heightsFlatPacks[i] = pack;
+    //         heightsFlatPacks2[i] = pack;
+    //     }
+
+    //     // compute work items via mask
+    //     for (int i = 1; i < side_length - 1; i++) {
+    //         for (int j = 1; j < side_length - 1; j++) {
+    //             if (mask == null || (mask[i, j] && !invertMask) || (invertMask && !mask[i, j])) workItems.Add(i * side_length + j);
+    //         }
+    //     }
+
+    //     int workItemPackCount = Mathf.CeilToInt(workItems.Count / 4f);
+    //     var workItemPacks = new int4[workItemPackCount];
+    //     // pack work items into vector units
+    //     for (int i = 0; i < workItemPackCount; i += 4) {
+    //         int4 pack = new int4(workItems[i], workItems[i + 1], workItems[i + 2], workItems[i + 3]);
+    //         workItemPacks[i] = pack;
+    //     }
+
+    //     // only process workitem indices -> multithread that work array
+    //     for (int n = 0; n < passes; n++) {
+    //         if (n % 2 == 0) {
+    //             foreach (int4 id in workItemPacks) AverageFilterAVX3x3Worker(id, side_length, heightsFlat, heightsFlat2);
+    //         } else {
+    //             foreach (int4 id in workItemPacks) AverageFilterAVX3x3Worker(id, side_length, heightsFlat2, heightsFlat);
+    //         }
+    //     }
+
+    //     // get the data from the correct buffer
+    //     if (passes % 2 == 0) heightsFlat = heightsFlat2;
+
+    //     // Debug.Log(heightsFlat[0]);
+    //     // expand result
+    //     for (int i = 0; i < side_length; i++) {
+    //         for (int j = 0; j < side_length; j++) {
+    //             input[i, j] = heightsFlat[i * (side_length) + j];
+    //         }
+    //     }
+    // }
 }

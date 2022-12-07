@@ -27,6 +27,14 @@ public class Heightmap {
         // Debug.Log("Runtime AverageFilter CPU:\t " + sw.Elapsed);
         // sw.Reset();
     }
+    public void AverageFilterMT(Mask mask = null, int numberOfRuns = 1) {
+        // System.Diagnostics.Stopwatch sw = new();
+        // sw.Restart();
+        TerrainShader.AverageFilterMT3x3(input: heights, mask: mask, passes: numberOfRuns);
+        // sw.Stop();
+        // Debug.Log("Runtime AverageFilter CPU MT:\t " + sw.Elapsed);
+        // sw.Reset();
+    }
     public void AverageFilterGPU(Mask mask = null, int numberOfRuns = 1) {
         // System.Diagnostics.Stopwatch sw = new();
         // sw.Restart();
