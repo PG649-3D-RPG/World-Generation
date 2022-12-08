@@ -1,118 +1,57 @@
-#pragma kernel SetBufferZero
-#pragma kernel AverageFilterMultiplyKeep3x3
-#pragma kernel AverageFilterAddKeep3x3
-#pragma kernel AverageFilterMultiply3x3
 #pragma kernel AverageFilterAdd3x3
+#pragma kernel AverageFilterMultiply3x3
 
 static const float avg_3x3 = 1/(float)9;
 
-RWStructuredBuffer<float> _zero_buffer;
-// zeroes the given buffer
-[numthreads(256, 1, 1)]
-void SetBufferZero(uint3 id : SV_DispatchThreadID) {
-    _zero_buffer[id.x] = 0;
-}
-
-uint _size_safe;
 uint _size_input;
-uint _end_of_safe_zone;
-StructuredBuffer<int> _mask;
+uint _work_item_count;
+StructuredBuffer<uint> _work_items;
 StructuredBuffer<float> _input;
 RWStructuredBuffer<float> _output;
 
-// id.x is iterated over the smaller "safe zone" array -> lookups and writes have to be translated
+// id.x is work item index, work items are the pixels
 [numthreads(256,1,1)]
-void AverageFilterMultiplyKeep3x3 (uint3 id : SV_DispatchThreadID)
+void AverageFilterAdd3x3 (uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= _end_of_safe_zone) return; // stop after end of safe zone
-    const uint row = (id.x / _size_safe) + 1; // integer division => row
-    const uint col = (id.x % _size_safe) + 1; // modulo => column
-
-
-    float sum = _input[row * _size_input + col]; // translated to input coords
-
-    if(_mask[row * _size_input + col] == 1) {
-        sum *= _input[(row - 1) * _size_input + (col - 1)] * avg_3x3;
-        sum *= _input[(row - 1) * _size_input + (col)] * avg_3x3;
-        sum *= _input[(row - 1) * _size_input + (col + 1)] * avg_3x3;
-        sum *= _input[(row) * _size_input + (col - 1)] * avg_3x3;
-        sum *= _input[(row) * _size_input + (col)] * avg_3x3;
-        sum *= _input[(row) * _size_input + (col + 1)] * avg_3x3;
-        sum *= _input[(row + 1) * _size_input + (col - 1)] * avg_3x3;
-        sum *= _input[(row + 1) * _size_input + (col)] * avg_3x3;
-        sum *= _input[(row + 1) * _size_input + (col + 1)] * avg_3x3;
-        _output[row * _size_input + col] = sum;
-    } else _output[row * _size_input + col] = _input[row * _size_input + col];
-}
-
-[numthreads(256,1,1)]
-void AverageFilterAddKeep3x3 (uint3 id : SV_DispatchThreadID)
-{
-    if (id.x >= _end_of_safe_zone) return; //stop after end of safe zone
-    const uint row = (id.x / _size_safe) + 1; // integer division => row
-    const uint col = (id.x % _size_safe) + 1; // modulo => column
+    uint item = _work_items[id.x];
+    if (id.x >= _work_item_count) return; // stop after all work items are done
+    uint row = item / _size_input; // integer division => row
+    uint col = item % _size_input; // modulo => column
 
     float sum = 0;
 
-    if (_mask[row * _size_input + col] == 1) {
-        sum += _input[(row - 1) * _size_input + (col - 1)] * avg_3x3;
-        sum += _input[(row - 1) * _size_input + (col)] * avg_3x3;
-        sum += _input[(row - 1) * _size_input + (col + 1)] * avg_3x3;
-        sum += _input[(row)*_size_input + (col - 1)] * avg_3x3;
-        sum += _input[(row)*_size_input + (col)] * avg_3x3;
-        sum += _input[(row)*_size_input + (col + 1)] * avg_3x3;
-        sum += _input[(row + 1) * _size_input + (col - 1)] * avg_3x3;
-        sum += _input[(row + 1) * _size_input + (col)] * avg_3x3;
-        sum += _input[(row + 1) * _size_input + (col + 1)] * avg_3x3;
-        _output[row * _size_input + col] = sum;
-    }
-    else _output[row * _size_input + col] = _input[row * _size_input + col];
+    sum += _input[(row - 1) * _size_input + (col - 1)] * avg_3x3;
+    sum += _input[(row - 1) * _size_input + (col)] * avg_3x3;
+    sum += _input[(row - 1) * _size_input + (col + 1)] * avg_3x3;
+    sum += _input[(row)*_size_input + (col - 1)] * avg_3x3;
+    sum += _input[(row)*_size_input + (col)] * avg_3x3;
+    sum += _input[(row)*_size_input + (col + 1)] * avg_3x3;
+    sum += _input[(row + 1) * _size_input + (col - 1)] * avg_3x3;
+    sum += _input[(row + 1) * _size_input + (col)] * avg_3x3;
+    sum += _input[(row + 1) * _size_input + (col + 1)] * avg_3x3;
+    _output[row * _size_input + col] = sum;
 }
 
-// same as other kernels but dont keep old value
-[numthreads(256, 1, 1)]
-void AverageFilterMultiply3x3(uint3 id : SV_DispatchThreadID)
+// id.x is work item index, work items are the pixels
+[numthreads(256,1,1)]
+void AverageFilterMultiply3x3 (uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= _end_of_safe_zone) return; // stop after end of safe zone
-    const uint row = (id.x / _size_safe) + 1; // integer division => row
-    const uint col = (id.x % _size_safe) + 1; // modulo => column
+    const uint item = _work_items[id.x];
+    if (id.x >= _work_item_count) return; // stop after all work items are done
+    const uint row = item / _size_input; // integer division => row
+    const uint col = item % _size_input; // modulo => column
 
 
-    float sum = _input[row * _size_input + col]; // translated to input coords
+    float sum = _input[row * _size_input + col];
 
-    if (_mask[row * _size_input + col] == 1) {
-        sum *= _input[(row - 1) * _size_input + (col - 1)] * avg_3x3;
-        sum *= _input[(row - 1) * _size_input + (col)] * avg_3x3;
-        sum *= _input[(row - 1) * _size_input + (col + 1)] * avg_3x3;
-        sum *= _input[(row)*_size_input + (col - 1)] * avg_3x3;
-        sum *= _input[(row)*_size_input + (col)] * avg_3x3;
-        sum *= _input[(row)*_size_input + (col + 1)] * avg_3x3;
-        sum *= _input[(row + 1) * _size_input + (col - 1)] * avg_3x3;
-        sum *= _input[(row + 1) * _size_input + (col)] * avg_3x3;
-        sum *= _input[(row + 1) * _size_input + (col + 1)] * avg_3x3;
-        _output[row * _size_input + col] = sum;
-    }
-}
-
-[numthreads(256, 1, 1)]
-void AverageFilterAdd3x3(uint3 id : SV_DispatchThreadID)
-{
-    if (id.x >= _end_of_safe_zone) return; //stop after end of safe zone
-    const uint row = (id.x / _size_safe) + 1; // integer division => row
-    const uint col = (id.x % _size_safe) + 1; // modulo => column
-
-    float sum = 0;
-
-    if (_mask[row * _size_input + col] == 1) {
-        sum += _input[(row - 1) * _size_input + (col - 1)] * avg_3x3;
-        sum += _input[(row - 1) * _size_input + (col)] * avg_3x3;
-        sum += _input[(row - 1) * _size_input + (col + 1)] * avg_3x3;
-        sum += _input[(row)*_size_input + (col - 1)] * avg_3x3;
-        sum += _input[(row)*_size_input + (col)] * avg_3x3;
-        sum += _input[(row)*_size_input + (col + 1)] * avg_3x3;
-        sum += _input[(row + 1) * _size_input + (col - 1)] * avg_3x3;
-        sum += _input[(row + 1) * _size_input + (col)] * avg_3x3;
-        sum += _input[(row + 1) * _size_input + (col + 1)] * avg_3x3;
-        _output[row * _size_input + col] = sum;
-    }
+    sum *= _input[(row - 1) * _size_input + (col - 1)] * avg_3x3;
+    sum *= _input[(row - 1) * _size_input + (col)] * avg_3x3;
+    sum *= _input[(row - 1) * _size_input + (col + 1)] * avg_3x3;
+    sum *= _input[(row) * _size_input + (col - 1)] * avg_3x3;
+    sum *= _input[(row) * _size_input + (col)] * avg_3x3;
+    sum *= _input[(row) * _size_input + (col + 1)] * avg_3x3;
+    sum *= _input[(row + 1) * _size_input + (col - 1)] * avg_3x3;
+    sum *= _input[(row + 1) * _size_input + (col)] * avg_3x3;
+    sum *= _input[(row + 1) * _size_input + (col + 1)] * avg_3x3;
+    _output[row * _size_input + col] = sum;
 }
