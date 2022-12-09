@@ -1,5 +1,7 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering;
+
 public class Heightmap {
     private int heightScale;
     private int size;
@@ -23,14 +25,14 @@ public class Heightmap {
         // for (int i = 0; i < numberOfRuns; i++) HeightmapTransforms.ApplyFilter(heights, HeightmapTransforms.AverageFilter(3, 3), mask: mask);
         // System.Diagnostics.Stopwatch sw = new();
         // sw.Restart();
-        if (SystemInfo.supportsComputeShaders) TerrainShaderGPU.AverageFilterGPU3x3Fast(input: heights, mask: mask, passes: numberOfRuns);
+        if (SystemInfo.supportsComputeShaders && !IsHeadless()) TerrainShaderGPU.AverageFilterGPU3x3Fast(input: heights, mask: mask, passes: numberOfRuns);
         else TerrainShaderCPU.AverageFilterMT3x3(input: heights, mask: mask, passes: numberOfRuns);
         // sw.Stop();
         // Debug.Log("Runtime AverageFilter GPU:\t " + sw.Elapsed);
         // sw.Reset();
     }
     public void GaussianBlur(Mask mask = null, int numberOfRuns = 1, Gauss_SD std = Gauss_SD.SD1) {
-        if (SystemInfo.supportsComputeShaders) TerrainShaderGPU.GaussianBlurGPU3x3(input: heights, mask: mask, passes: numberOfRuns, std: std);
+        if (SystemInfo.supportsComputeShaders && !IsHeadless()) TerrainShaderGPU.GaussianBlurGPU3x3(input: heights, mask: mask, passes: numberOfRuns, std: std);
         else TerrainShaderCPU.GaussianBlurMT3x3(input: heights, mask: mask, passes: numberOfRuns, std: std);
     }
     public void Power(float power, Mask mask = null) {
@@ -44,6 +46,12 @@ public class Heightmap {
                 if (mask == null || mask[i, j]) heights[i, j] = f(heights[i, j]);
             }
         }
+    }
+
+    // detect headless mode (which has graphicsDeviceType Null)
+    // https://noobtuts.com/unity/detect-headless-mode
+    private bool IsHeadless() {
+        return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null;
     }
 
     public void AddTerrainToGameObject(GameObject go) {
