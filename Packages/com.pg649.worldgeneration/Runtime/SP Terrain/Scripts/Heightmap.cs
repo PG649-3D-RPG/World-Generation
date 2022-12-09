@@ -55,7 +55,7 @@ public class Heightmap {
     public void AddTerrainToGameObject(GameObject go) {
         Terrain terrain = go.AddComponent<Terrain>();
         terrain.terrainData = new TerrainData();
-        //terrain.materialTemplate = new Material(Shader.Find("Nature/Terrain/Diffuse"));
+        if (!IsHeadless()) terrain.materialTemplate = new Material(Shader.Find("Nature/Terrain/Diffuse"));
         terrain.terrainData.heightmapResolution = size + 1;
         terrain.terrainData.SetHeights(0, 0, heights.Transpose());
         terrain.terrainData.size = new Vector3(size, 100, size);
