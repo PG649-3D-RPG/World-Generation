@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class Heightmap {
     private int heightScale;
@@ -48,10 +47,9 @@ public class Heightmap {
         }
     }
 
-    // detect headless mode (which has graphicsDeviceType Null)
-    // https://noobtuts.com/unity/detect-headless-mode
+    // explicitly check if is in headless mode or in batchmode
     private bool IsHeadless() {
-        return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null;
+        return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null || Application.isBatchMode;
     }
 
     public void AddTerrainToGameObject(GameObject go) {
