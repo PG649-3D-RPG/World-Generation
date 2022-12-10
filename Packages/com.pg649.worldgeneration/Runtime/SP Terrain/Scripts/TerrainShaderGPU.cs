@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public static class TerrainShaderGPU {
@@ -75,7 +74,7 @@ public static class TerrainShaderGPU {
         outputBuffer.Release();
     }
 
-    public static void AverageFilterGPU3x3(float[,] input, Mask mask, int passes, bool invertMask = false, bool add = true, bool multiplyFilter = false) {
+    /* public static void AverageFilterGPU3x3(float[,] input, Mask mask, int passes, bool invertMask = false, bool add = true, bool multiplyFilter = false) {
         ComputeShader computeShader = Resources.Load<ComputeShader>("ComputeShader/AverageFilterSafe");
         if (computeShader == null) throw new ArgumentNullException("Average Shader is not set in settings object");
 
@@ -145,9 +144,11 @@ public static class TerrainShaderGPU {
         maskBuffer.Release();
         inputBuffer.Release();
         outputBuffer.Release();
-    }
+    }*/
 
     public static void AverageFilterGPU3x3Fast(float[,] input, Mask mask, int passes, bool invertMask = false, bool add = true, bool multiplyFilter = false) {
+        //System.Diagnostics.Stopwatch sw = new();
+        //sw.Restart();
         ComputeShader computeShader = Resources.Load<ComputeShader>("ComputeShader/AverageFilter");
         if (computeShader == null) throw new ArgumentNullException("Average Shader is not set!");
 
@@ -219,6 +220,9 @@ public static class TerrainShaderGPU {
         workItemBuffer.Release();
         inputBuffer.Release();
         outputBuffer.Release();
+        //sw.Stop();
+        //Debug.Log("Runtime AverageFilter GPU:\t " + sw.Elapsed);
+        //sw.Reset();
     }
 }
 

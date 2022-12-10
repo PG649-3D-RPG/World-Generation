@@ -1,6 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
+using UnityEngine.Jobs;
+
 
 public enum Gauss_SD {
     SD1, SD2, SD3
@@ -133,7 +138,7 @@ public static class TerrainShaderCPU {
             }
         }
     }
-
+    /*
     private static void AverageFilterMT3x3Worker(int id, int _size_input, float[] _input, float[] _output) {
         int row = id / _size_input; // integer division => row
         int col = id % _size_input; // modulo => column
@@ -194,5 +199,119 @@ public static class TerrainShaderCPU {
                 input[i, j] = heightsFlat[i * (side_length) + j];
             }
         }
+    }*/
+    public static void AverageFilterMT3x3Burst(float[,] input, Mask mask, int passes, bool invertMask = false) {
+        //System.Diagnostics.Stopwatch sw = new();
+        //sw.Restart();
+        int side_length = input.GetLength(0);
+
+        // linearize heights and mask
+        NativeArray<float> heightsFlat = new NativeArray<float>(side_length * side_length, Allocator.TempJob);
+        NativeArray<float> heightsFlat2 = new NativeArray<float>(side_length * side_length, Allocator.TempJob);
+
+        var workItems = new List<int>();
+
+        for (int i = 0; i < side_length; i++) {
+            for (int j = 0; j < side_length; j++) {
+                heightsFlat[i * side_length + j] = input[i, j];
+                heightsFlat2[i * side_length + j] = input[i, j];
+            }
+        }
+        // compute work items via mask
+        for (int i = 1; i < side_length - 1; i++) {
+            for (int j = 1; j < side_length - 1; j++) {
+                if (mask == null || (mask[i, j] && !invertMask) || (invertMask && !mask[i, j])) workItems.Add(i * side_length + j);
+            }
+        }
+
+        NativeArray<int> workItemsArr = new NativeArray<int>(workItems.Count, Allocator.TempJob);
+        for (int i = 0; i < workItems.Count; i++) {
+            workItemsArr[i] = workItems[i];
+        }
+
+        JobHandle jobHandle;
+        AverageFilterJob filterJob1 = new AverageFilterJob() {
+            _output = heightsFlat2,
+            _input = heightsFlat,
+            _work_items = workItemsArr,
+            _size_input = side_length,
+            _work_item_count = workItemsArr.Length
+        };
+        AverageFilterJob filterJob2 = new AverageFilterJob() {
+            _output = heightsFlat,
+            _input = heightsFlat2,
+            _work_items = workItemsArr,
+            _size_input = side_length,
+            _work_item_count = workItemsArr.Length
+        };
+
+        // only process workitem indices -> multithread that work array
+        for (int n = 0; n < passes; n++) {
+            if (n % 2 == 0) {
+                jobHandle = filterJob1.Schedule(workItemsArr.Length, 64);
+                jobHandle.Complete();
+            } else {
+                jobHandle = filterJob2.Schedule(workItemsArr.Length, 64);
+                jobHandle.Complete();
+            }
+        }
+
+        // expand result
+        for (int i = 0; i < side_length; i++) {
+            for (int j = 0; j < side_length; j++) {
+                // get the data from the correct buffer
+                if (passes % 2 == 0) input[i, j] = heightsFlat2[i * (side_length) + j];
+                else input[i, j] = heightsFlat[i * (side_length) + j];
+            }
+        }
+
+        heightsFlat.Dispose();
+        heightsFlat2.Dispose();
+        workItemsArr.Dispose();
+
+        //sw.Stop();
+        //Debug.Log("Runtime AverageFilter Burst:\t " + sw.Elapsed);
+        //sw.Reset();
     }
+
+    [BurstCompile]
+    private struct AverageFilterJob : IJobParallelFor {
+
+        [NativeDisableParallelForRestriction, WriteOnly]
+        public NativeArray<float> _output;
+
+        [ReadOnly]
+        public NativeArray<float> _input;
+
+        [ReadOnly]
+        public NativeArray<int> _work_items;
+
+        [ReadOnly]
+        public int _size_input;
+        [ReadOnly]
+        public int _work_item_count;
+
+        public void Execute(int i) {
+            if (i >= _work_item_count) return;
+            int item = _work_items[i];
+
+            int row = item / _size_input; // integer division => row
+            int col = item % _size_input; // modulo => column
+
+            float sum = 0;
+
+            sum += _input[(row - 1) * _size_input + (col - 1)] * Avg_3x3;
+            sum += _input[(row - 1) * _size_input + (col)] * Avg_3x3;
+            sum += _input[(row - 1) * _size_input + (col + 1)] * Avg_3x3;
+            sum += _input[(row) * _size_input + (col - 1)] * Avg_3x3;
+            sum += _input[(row) * _size_input + (col)] * Avg_3x3;
+            sum += _input[(row) * _size_input + (col + 1)] * Avg_3x3;
+            sum += _input[(row + 1) * _size_input + (col - 1)] * Avg_3x3;
+            sum += _input[(row + 1) * _size_input + (col)] * Avg_3x3;
+            sum += _input[(row + 1) * _size_input + (col + 1)] * Avg_3x3;
+            _output[row * _size_input + col] = sum;
+        }
+
+    }
+
 }
