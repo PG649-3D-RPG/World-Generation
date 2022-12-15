@@ -4,7 +4,7 @@ using UnityEngine;
 public class Heightmap {
     private int heightScale;
     private int size;
-    private float[,] heights;
+    public float[,] heights { get; set; }
 
     public Heightmap(int size, int heightScale = 100) {
         this.size = size;
@@ -22,8 +22,9 @@ public class Heightmap {
     }
     public void AverageFilter(Mask mask = null, int numberOfRuns = 1) {
         // for (int i = 0; i < numberOfRuns; i++) HeightmapTransforms.ApplyFilter(heights, HeightmapTransforms.AverageFilter(3, 3), mask: mask);
-        if (SystemInfo.supportsComputeShaders && !IsHeadless()) TerrainShaderGPU.AverageFilterGPU3x3Fast(input: heights, mask: mask, passes: numberOfRuns);
-        else TerrainShaderCPU.AverageFilterMT3x3Burst(input: heights, mask: mask, passes: numberOfRuns);
+        // if (SystemInfo.supportsComputeShaders && !IsHeadless()) TerrainShaderGPU.AverageFilterGPU3x3Fast(input: heights, mask: mask, passes: numberOfRuns);
+        // else 
+        TerrainShaderCPU.AverageFilterMT3x3Burst(input: heights, mask: mask, passes: numberOfRuns);
     }
     public void GaussianBlur(Mask mask = null, int numberOfRuns = 1, Gauss_SD std = Gauss_SD.SD1) {
         if (SystemInfo.supportsComputeShaders && !IsHeadless()) TerrainShaderGPU.GaussianBlurGPU3x3(input: heights, mask: mask, passes: numberOfRuns, std: std);

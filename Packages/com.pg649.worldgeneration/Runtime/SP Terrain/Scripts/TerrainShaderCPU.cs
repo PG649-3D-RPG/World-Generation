@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
 
@@ -275,7 +276,7 @@ public static class TerrainShaderCPU {
     }
 
     [BurstCompile]
-    private struct AverageFilterJob : IJobParallelFor {
+    public struct AverageFilterJob : IJobParallelFor {
 
         [NativeDisableParallelForRestriction, WriteOnly]
         public NativeArray<float> _output;
@@ -292,7 +293,7 @@ public static class TerrainShaderCPU {
         public int _work_item_count;
 
         public void Execute(int i) {
-            if (i >= _work_item_count) return;
+            if (Unity.Burst.CompilerServices.Hint.Unlikely(i >= _work_item_count)) return;
             int item = _work_items[i];
 
             int row = item / _size_input; // integer division => row
@@ -311,7 +312,97 @@ public static class TerrainShaderCPU {
             sum += _input[(row + 1) * _size_input + (col + 1)] * Avg_3x3;
             _output[row * _size_input + col] = sum;
         }
+    }
 
+    [BurstCompile]
+    public struct PerlinNoiseJob : IJobParallelFor {
+
+        [NativeDisableParallelForRestriction, WriteOnly]
+        public NativeArray<float> _output;
+
+        [ReadOnly]
+        public NativeArray<float> _input;
+
+        [ReadOnly]
+        public NativeArray<int> _work_items;
+
+        [ReadOnly]
+        public int _size_input;
+        [ReadOnly]
+        public int _work_item_count;
+        [ReadOnly]
+        public int _fractal_runs;
+        [ReadOnly]
+        public float _max_added_height;
+        [ReadOnly]
+        public float _scale;
+
+        public void Execute(int i) {
+            if (Unity.Burst.CompilerServices.Hint.Unlikely(i >= _work_item_count)) return;
+            int item = _work_items[i];
+
+            int row = item / _size_input; // integer division => row
+            int col = item % _size_input; // modulo => column
+
+            float amp = _max_added_height;
+            // float s = _scale;
+            float val = _input[item];
+            for (int k = 0; k < _fractal_runs; k++) {
+                val += Mathf.PerlinNoise(row * _scale, col * _scale) * amp;
+                amp *= 0.5f;
+                // s *= 2;
+            }
+            _output[item] = val;
+        }
+    }
+
+    [BurstCompile]
+    public struct PowerJob : IJobParallelFor {
+
+        [NativeDisableParallelForRestriction, WriteOnly]
+        public NativeArray<float> _output;
+
+        [ReadOnly]
+        public NativeArray<float> _input;
+
+        [ReadOnly]
+        public NativeArray<int> _work_items;
+
+        [ReadOnly]
+        public int _work_item_count;
+        [ReadOnly]
+        public float _power;
+
+        public void Execute(int i) {
+            if (Unity.Burst.CompilerServices.Hint.Unlikely(i >= _work_item_count)) return;
+            int item = _work_items[i];
+            _output[item] = math.pow(_input[item], _power);
+        }
+    }
+
+    [BurstCompile]
+    public struct SetByMaskJob : IJobParallelFor {
+
+        [NativeDisableParallelForRestriction, WriteOnly]
+        public NativeArray<float> _output;
+
+        [ReadOnly]
+        public NativeArray<float> _input;
+
+        [ReadOnly]
+        public NativeArray<bool> _mask;
+
+        [ReadOnly]
+        public int _work_item_count;
+        [ReadOnly]
+        public float _false_value;
+        [ReadOnly]
+        public float _true_value;
+
+        public void Execute(int i) {
+            if (Unity.Burst.CompilerServices.Hint.Unlikely(i >= _work_item_count)) return;
+            _output[i] = _mask[i] ? _true_value : _false_value > -1 ? _false_value : _input[i];
+        }
     }
 
 }

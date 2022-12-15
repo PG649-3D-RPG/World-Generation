@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: WorldGeneratorSettings
   m_EditorClassIdentifier: 
   seed: 12
-  size: 1024
+  size: 2048
   partitionMode: 0
   minPartitionWidth: 128
   minPartitionDepth: 128
