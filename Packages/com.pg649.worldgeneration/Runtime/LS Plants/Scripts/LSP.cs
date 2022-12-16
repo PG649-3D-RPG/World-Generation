@@ -37,7 +37,7 @@ public class LSP : Placeable {
     public override int Width{
         get{return width;}
     }
-    public override int Height{
+    public override int Height{ 
         get{return height;}
     }
 }
