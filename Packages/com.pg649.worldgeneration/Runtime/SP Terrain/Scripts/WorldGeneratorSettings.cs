@@ -29,4 +29,7 @@ public class WorldGeneratorSettings : ScriptableObject
     public float minCorridorHeight = 2;
     public float maxCorridorHeight = 3;
     public float maxDistance = 32;
+    [Header("PlaceObjects")]
+    public bool placeObjects = true;
+    public int cubesPerRoom = 12;
 }

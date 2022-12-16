@@ -14,7 +14,7 @@ public class DungeonRoom : IGameObjectable{
     private Vector3Int roomPoint;
     private int type;
     private List<Tuple<Vector3Int,int>> spawnPoints;
-    private List<Tuple<Placeable, Vector3Int, int, int>> placeables;
+    private List<Tuple<Placeable, Vector3Int>> placeables;
 
 
     public enum Face{
@@ -30,7 +30,7 @@ public class DungeonRoom : IGameObjectable{
         free = new bool[width,depth];
         free.MapI<bool>(x => true);
         paths = new Mask(width, depth);
-        placeables = new List<Tuple<Placeable, Vector3Int, int, int>>();
+        placeables = new List<Tuple<Placeable, Vector3Int>>();
         this.rand = rand == null ? new System.Random() : rand;
         corridorPoints = new List<Tuple<Face,int,int>>();
         this.type = 0;
@@ -203,6 +203,40 @@ public class DungeonRoom : IGameObjectable{
         }
     }
 
+    public void PlacePlaceable(Placeable p){
+        int size = Math.Max(p.Width, p.Height);
+        float[,] a = free.Map(x => x ? 0f : 1f);
+        for(int k = 0; k < size; k++){
+            HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilter);
+            if(k == 0){
+                for(int i = 0; i < a.GetLength(0); i++){
+                    a[i,0] = 1f;
+                    a[i,a.GetLength(1)-1] = 1f;
+                }
+                for(int j = 0; j < a.GetLength(1); j++){
+                    a[0,j] = 1f;
+                    a[a.GetLength(0)-1,j] = 1f;
+                }
+            }
+        }
+        List<Tuple<int,int>> l = new List<Tuple<int,int>>();
+        for(int i = 0; i < a.GetLength(0); i++){
+            for(int j = 0; j < a.GetLength(1); j++){
+                if(a[i,j] == 0f) l.Add(new Tuple<int,int>(i,j));
+            }
+        }
+        if(l.Count > 0){
+            int index = rand.Next(0, l.Count);
+            Tuple<int,int> t = l[index];
+            for(int k = t.Item1 - size; k <= t.Item1 + size; k++){
+                for(int m = t.Item2 - size; m <= t.Item2 + size; m++){
+                    free[k,m] = false;
+                }
+            }
+            placeables.Add(new Tuple<Placeable, Vector3Int>(p, new Vector3Int(roomPoint.x + t.Item1,0,roomPoint.z + t.Item2)));
+        }
+    }
+
     public Mesh ToMesh(){
         Mesh mesh = new Mesh();
 
@@ -276,6 +310,10 @@ public class DungeonRoom : IGameObjectable{
     public List<Tuple<Vector3Int,int>> SpawnPoints{
         get{return spawnPoints;}
     }
+    public List<Tuple<Placeable,Vector3Int>> Placeables{
+        get{return placeables;}
+    }
+    
 }
 public class DungeonRoomMeta : MonoBehaviour{
     public int width, depth;

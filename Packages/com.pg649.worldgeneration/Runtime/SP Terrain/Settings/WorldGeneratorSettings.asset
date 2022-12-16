@@ -18,10 +18,10 @@ MonoBehaviour:
   minPartitionWidth: 128
   minPartitionDepth: 128
   skipChildren: 0
-  leftRightMinMargin: 24
-  leftRightMaxMargin: 48
-  frontBackMinMargin: 24
-  frontBackMaxMargin: 48
+  leftRightMinMargin: 50
+  leftRightMaxMargin: 50
+  frontBackMinMargin: 50
+  frontBackMaxMargin: 50
   levelPlacementProbability: 100
   numberOfTypes: 1
   spawnPointsPerRoom: 3
@@ -31,3 +31,5 @@ MonoBehaviour:
   minCorridorHeight: 2
   maxCorridorHeight: 3
   maxDistance: 32
+  placeObjects: 1
+  cubesPerRoom: 36

@@ -21,7 +21,7 @@ public class LSP : Placeable {
     public override GameObject ToGameObject(){
         GameObject go = new GameObject("Plant");
         Segment[] segments = LSystemToSegments();
-        Metaball m = Metaball.BuildFromSegments(segments, FalloffFunctions.POLYNOMIAL2);
+        //Metaball m = Metaball.BuildFromSegments(segments, FalloffFunctions.POLYNOMIAL2);
         //MeshGenerator meshGen = go.AddComponent<MeshGenerator>();
         //meshGen.Generate(m);
         return go;

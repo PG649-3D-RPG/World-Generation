@@ -481,6 +481,28 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         return go;
     }
 
+    public void AddPlaceableToRooms(Placeable p, int n = 1){
+        if(node.Room != null){
+            for(int i = 0; i < n; i++) node.Room.PlacePlaceable(p);
+        }
+         foreach(DungeonTreeT c in children){
+            c.AddPlaceableToRooms(p, n : n);
+        }
+    }
+
+    public void AddPlaceablesToGameObject(GameObject go){
+        if(node.Room != null){
+            foreach(Tuple<Placeable, Vector3Int> t in node.Room.Placeables){
+                GameObject pgo = t.Item1.ToGameObject();
+                pgo.transform.position = t.Item2;
+                pgo.transform.parent = go.transform; 
+            }
+        }
+        foreach(DungeonTreeT c in children){
+            c.AddPlaceablesToGameObject(go);
+        }
+    }
+
     public Mask RoomsFreeMask(Mask m = null, int type = -1){
         m ??= new Mask(node.Size[0], node.Size[1]);
         if(node.Room != null && (node.Room.Type == type || type == -1)) node.Room.RoomsFreeMask(m);
