@@ -34,15 +34,16 @@ public class WorldGenerator {
         TerrainMasks tm = dTree.ToTerrainMasks();
 
         h.SetByMask(tm.intermediate, 70);
-        h.AverageFilterGPU(mask: tm.intermediate, numberOfRuns: 600);
+        h.AverageFilter(mask: tm.intermediate, numberOfRuns: 600);
         h.PerlinNoise(maxAddedHeight: 20f, scale: 0.03f, tm.intermediate, fractalRuns: 3);
         h.Power(3, mask: tm.intermediate);
         h.PerlinNoise(maxAddedHeight: 5f, scale: 0.15f, mask: tm.intermediate, fractalRuns: 2);
-        h.AverageFilterGPU(mask: tm.levelsCorridors.InvertedBorderMask(6), numberOfRuns: 15);
+        h.AverageFilter(mask: tm.levelsCorridors.InvertedBorderMask(6), numberOfRuns: 15);
         h.SetByMask(tm.levelsCorridors.InvertedBorderMask(1), 1.1f);
 
-        GameObject tgo = new GameObject("Terrain");
-        tgo.tag = "ground";
+        GameObject tgo = new GameObject("Terrain") {
+            tag = "ground"
+        };
         h.AddTerrainToGameObject(tgo);
 
         if(settings.placeObjects){

@@ -1,11 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-public enum Gauss_SD {
-    SD1, SD2, SD3
-}
-
-public static class TerrainShader {
+public static class TerrainShaderGPU {
 
     public static void GaussianBlurGPU3x3(float[,] input, Mask mask, int passes, Gauss_SD std, bool invertMask = false, bool add = true) {
         ComputeShader computeShader = Resources.Load<ComputeShader>("ComputeShader/GaussianBlur");
@@ -24,9 +21,6 @@ public static class TerrainShader {
             }
         }
 
-
-        //TODO try mask instead of using int use a ByteArray and set those accordingly maybe
-        //TODO improve speed by packing float values into float4 packages
         ComputeBuffer maskBuffer = new ComputeBuffer(side_length * side_length, sizeof(int));
         ComputeBuffer inputBuffer = new ComputeBuffer(side_length * side_length, sizeof(float));
         ComputeBuffer outputBuffer = new ComputeBuffer(side_length * side_length, sizeof(float));
@@ -80,8 +74,8 @@ public static class TerrainShader {
         outputBuffer.Release();
     }
 
-    public static void AverageFilterGPU3x3(float[,] input, Mask mask, int passes, bool invertMask = false, bool add = true, bool multiplyFilter = false) {
-        ComputeShader computeShader = Resources.Load<ComputeShader>("ComputeShader/AverageFilter");
+    /* public static void AverageFilterGPU3x3(float[,] input, Mask mask, int passes, bool invertMask = false, bool add = true, bool multiplyFilter = false) {
+        ComputeShader computeShader = Resources.Load<ComputeShader>("ComputeShader/AverageFilterSafe");
         if (computeShader == null) throw new ArgumentNullException("Average Shader is not set in settings object");
 
         int side_length = input.GetLength(0);
@@ -97,17 +91,9 @@ public static class TerrainShader {
             }
         }
 
-
-        //TODO try mask instead of using int use a ByteArray and set those accordingly maybe
-        //TODO improve speed by packing float values into float4 packages
         ComputeBuffer maskBuffer = new ComputeBuffer(side_length * side_length, sizeof(int));
         ComputeBuffer inputBuffer = new ComputeBuffer(side_length * side_length, sizeof(float));
         ComputeBuffer outputBuffer = new ComputeBuffer(side_length * side_length, sizeof(float));
-
-        // // prepare buffer zeroing kernel
-        // int zeroingKernel = computeShader.FindKernel("SetBufferZero");
-        // computeShader.GetKernelThreadGroupSizes(zeroingKernel, out var zeroingThreadGroupSize, out _, out _);
-        // int zeroingThreadGroups = Mathf.CeilToInt((side_length) * (side_length) / zeroingThreadGroupSize);
 
         int kernelID;
         if (add)
@@ -131,18 +117,12 @@ public static class TerrainShader {
 
         for (int n = 0; n < passes; n++) {
             if (n % 2 == 0) { // alternate between runs
-                // zero current output buffer
-                // computeShader.SetBuffer(zeroingKernel, "_zero_buffer", outputBuffer);
-                // computeShader.Dispatch(zeroingKernel, zeroingThreadGroups, 1, 1);
 
                 // set input/output buffers accordingly
                 computeShader.SetBuffer(kernelID, "_input", inputBuffer);
                 computeShader.SetBuffer(kernelID, "_output", outputBuffer);
                 computeShader.Dispatch(kernelID, threadGroups, 1, 1);
             } else {
-                // zero current output buffer
-                // computeShader.SetBuffer(zeroingKernel, "_zero_buffer", inputBuffer);
-                // computeShader.Dispatch(zeroingKernel, zeroingThreadGroups, 1, 1);
 
                 // set input/output buffers accordingly
                 computeShader.SetBuffer(kernelID, "_input", outputBuffer);
@@ -164,5 +144,85 @@ public static class TerrainShader {
         maskBuffer.Release();
         inputBuffer.Release();
         outputBuffer.Release();
+    }*/
+
+    public static void AverageFilterGPU3x3Fast(float[,] input, Mask mask, int passes, bool invertMask = false, bool add = true, bool multiplyFilter = false) {
+        //System.Diagnostics.Stopwatch sw = new();
+        //sw.Restart();
+        ComputeShader computeShader = Resources.Load<ComputeShader>("ComputeShader/AverageFilter");
+        if (computeShader == null) throw new ArgumentNullException("Average Shader is not set!");
+
+        int side_length = input.GetLength(0);
+
+        // linearize heights and mask
+        float[] heightsFlat = new float[side_length * side_length];
+        var workItems = new List<int>();
+
+        for (int i = 0; i < side_length; i++) {
+            for (int j = 0; j < side_length; j++) {
+                heightsFlat[i * side_length + j] = input[i, j];
+            }
+        }
+
+        // compute work items via mask
+        for (int i = 1; i < side_length - 1; i++) {
+            for (int j = 1; j < side_length - 1; j++) {
+                if (mask == null || (mask[i, j] && !invertMask) || (invertMask && !mask[i, j])) workItems.Add(i * side_length + j);
+            }
+        }
+        var workItemsArr = workItems.ToArray();
+        var workItemCount = workItemsArr.Length;
+
+
+        ComputeBuffer workItemBuffer = new ComputeBuffer(workItemCount, sizeof(int));
+        ComputeBuffer inputBuffer = new ComputeBuffer(side_length * side_length, sizeof(float));
+        ComputeBuffer outputBuffer = new ComputeBuffer(side_length * side_length, sizeof(float));
+
+        int kernelID = multiplyFilter ? computeShader.FindKernel("AverageFilterMultiply3x3") : computeShader.FindKernel("AverageFilterAdd3x3");
+
+
+        computeShader.GetKernelThreadGroupSizes(kernelID, out var threadGroupSize, out _, out _);
+        int threadGroups = Mathf.CeilToInt(workItemCount / threadGroupSize);
+
+        computeShader.SetInt("_size_input", side_length);
+        computeShader.SetInt("_work_item_count", workItemCount);
+        computeShader.SetBuffer(kernelID, "_work_items", workItemBuffer);
+
+        // populate buffers
+        workItemBuffer.SetData(workItemsArr);
+        inputBuffer.SetData(heightsFlat);
+        outputBuffer.SetData(heightsFlat);
+
+        for (int n = 0; n < passes; n++) {
+            if (n % 2 == 0) { // alternate between runs
+                              // set input/output buffers accordingly
+                computeShader.SetBuffer(kernelID, "_input", inputBuffer);
+                computeShader.SetBuffer(kernelID, "_output", outputBuffer);
+                computeShader.Dispatch(kernelID, threadGroups, 1, 1);
+            } else {
+                // set input/output buffers accordingly
+                computeShader.SetBuffer(kernelID, "_input", outputBuffer);
+                computeShader.SetBuffer(kernelID, "_output", inputBuffer);
+                computeShader.Dispatch(kernelID, threadGroups, 1, 1);
+            }
+        }
+
+        // get the data from the correct buffer
+        if (passes % 2 == 1) outputBuffer.GetData(heightsFlat); else inputBuffer.GetData(heightsFlat);
+
+        // expand result
+        for (int i = 0; i < side_length; i++) {
+            for (int j = 0; j < side_length; j++) {
+                input[i, j] = heightsFlat[i * (side_length) + j];
+            }
+        }
+
+        workItemBuffer.Release();
+        inputBuffer.Release();
+        outputBuffer.Release();
+        //sw.Stop();
+        //Debug.Log("Runtime AverageFilter GPU:\t " + sw.Elapsed);
+        //sw.Reset();
     }
 }
+

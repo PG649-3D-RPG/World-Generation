@@ -1,6 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public static class HeightmapTransforms
@@ -88,6 +89,9 @@ public static class HeightmapTransforms
     public static void SetByMask(float[,] a, Mask mask, float trueValue, float falseValue = -1){
         a.ZipMapI(mask.Array, new Func<float, bool, float>((f,b) => b ? trueValue : falseValue > -1 ? falseValue : f));
     }
+    public static void SetByMaskMT(float[,] a, Mask mask, float trueValue, float falseValue = -1) {
+        a.ZipMapIMT(mask.Array, new Func<float, bool, float>((f, b) => b ? trueValue : falseValue > -1 ? falseValue : f));
+    }
 }
 
 
@@ -123,6 +127,18 @@ public static class Ext{
                 a[i,j] = f(a[i,j], b[i,j]);
             }
         }
+    }
+    /// <summary>
+    /// Function f needs to be thread safe!
+    /// </summary>
+    public static void ZipMapIMT<T, K>(this T[,] a, K[,] b, Func<T, K, T> f) {
+        int dim0 = a.GetLength(0);
+        int dim1 = a.GetLength(1);
+        Parallel.For(0, dim0 * dim1, id => {
+            int i = id / dim0;
+            int j = id % dim1;
+            a[i, j] = f(a[i, j], b[i, j]);
+        });
     }
     public static T[,] Transpose<T>(this T[,] a){
         T[,] b = new T[a.GetLength(1), a.GetLength(0)];
