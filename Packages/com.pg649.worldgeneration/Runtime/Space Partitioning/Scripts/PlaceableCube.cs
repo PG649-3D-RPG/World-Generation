@@ -17,10 +17,10 @@ public class PlaceableCube : Placeable {
     }
 
     public override int Width{
-        get{return 1;}
+        get{return size;}
     }
     public override int Height{
-        get{return 1;}
+        get{return size;}
     }
 
 }

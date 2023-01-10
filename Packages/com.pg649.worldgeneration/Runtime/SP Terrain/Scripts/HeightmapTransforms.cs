@@ -7,6 +7,8 @@ using UnityEngine;
 public static class HeightmapTransforms
 {
     public static float[,] extensionFilter = new float[,] {{1,1,1},{1,1,1},{1,1,1}};
+    public static float[,] extensionFilterHorizontal = new float[,] {{1,1,1}};
+    public static float[,] extensionFilterVertical = new float[,] {{1},{1},{1}};
 
     public static float[,] AverageFilter(int width, int height){
         float[,] f = new float[width, height];

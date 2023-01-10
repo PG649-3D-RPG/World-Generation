@@ -32,4 +32,5 @@ MonoBehaviour:
   maxCorridorHeight: 3
   maxDistance: 32
   placeObjects: 1
-  cubesPerRoom: 36
+  cubesPerRoom: 12
+  freeSpaceBetweenObjects: 3

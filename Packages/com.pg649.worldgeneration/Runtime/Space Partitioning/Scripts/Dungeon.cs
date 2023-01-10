@@ -481,12 +481,12 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         return go;
     }
 
-    public void AddPlaceableToRooms(Placeable p, int n = 1){
+    public void AddPlaceableToRooms(Placeable p, int n = 1, int freeSpace = 2){
         if(node.Room != null){
-            for(int i = 0; i < n; i++) node.Room.PlacePlaceable(p);
+            for(int i = 0; i < n; i++) node.Room.PlacePlaceable(p, freeSpace : freeSpace);
         }
          foreach(DungeonTreeT c in children){
-            c.AddPlaceableToRooms(p, n : n);
+            c.AddPlaceableToRooms(p, n : n, freeSpace : freeSpace);
         }
     }
 
