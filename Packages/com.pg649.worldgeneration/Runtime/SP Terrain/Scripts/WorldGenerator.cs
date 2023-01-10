@@ -47,14 +47,12 @@ public class WorldGenerator {
         h.AddTerrainToGameObject(tgo);
 
         if(settings.placeObjects){
-            PlaceableCube cube2 = new PlaceableCube(size : 2);
             PlaceableCube cube3 = new PlaceableCube(size : 3);
-            PlaceableCube cube4 = new PlaceableCube(size : 4);
             PlaceableCube cube5 = new PlaceableCube(size : 5);
-            dTree.AddPlaceableToRooms(cube2,settings.cubesPerRoom/4);
-            dTree.AddPlaceableToRooms(cube3,settings.cubesPerRoom/4);
-            dTree.AddPlaceableToRooms(cube4,settings.cubesPerRoom/4);
-            dTree.AddPlaceableToRooms(cube5,settings.cubesPerRoom/4);
+            PlaceableCube cube7 = new PlaceableCube(size : 7);
+            dTree.AddPlaceableToRooms(cube3,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
+            dTree.AddPlaceableToRooms(cube5,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
+            dTree.AddPlaceableToRooms(cube7,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
             dTree.AddPlaceablesToGameObject(tgo);
         }
 

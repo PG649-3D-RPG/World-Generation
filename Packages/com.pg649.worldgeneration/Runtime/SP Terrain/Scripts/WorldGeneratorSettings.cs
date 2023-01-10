@@ -32,4 +32,5 @@ public class WorldGeneratorSettings : ScriptableObject
     [Header("PlaceObjects")]
     public bool placeObjects = true;
     public int cubesPerRoom = 12;
+    public int freeSpaceBetweenObjects = 2;
 }

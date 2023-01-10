@@ -203,16 +203,55 @@ public class DungeonRoom : IGameObjectable{
         }
     }
 
-    public void PlacePlaceable(Placeable p){
-        int size = Math.Max(p.Width, p.Height);
+    // public void PlacePlaceable(Placeable p){
+    //     int size = Math.Max(p.Width, p.Height);
+    //     float[,] a = free.Map(x => x ? 0f : 1f);
+    //     for(int k = 0; k < size; k++){
+    //         HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilter);
+    //         if(k == 0){
+    //             for(int i = 0; i < a.GetLength(0); i++){
+    //                 a[i,0] = 1f;
+    //                 a[i,a.GetLength(1)-1] = 1f;
+    //             }
+    //             for(int j = 0; j < a.GetLength(1); j++){
+    //                 a[0,j] = 1f;
+    //                 a[a.GetLength(0)-1,j] = 1f;
+    //             }
+    //         }
+    //     }
+    //     List<Tuple<int,int>> l = new List<Tuple<int,int>>();
+    //     for(int i = 0; i < a.GetLength(0); i++){
+    //         for(int j = 0; j < a.GetLength(1); j++){
+    //             if(a[i,j] == 0f) l.Add(new Tuple<int,int>(i,j));
+    //         }
+    //     }
+    //     if(l.Count > 0){
+    //         int index = rand.Next(0, l.Count);
+    //         Tuple<int,int> t = l[index];
+    //         for(int k = t.Item1 - size; k <= t.Item1 + size; k++){
+    //             for(int m = t.Item2 - size; m <= t.Item2 + size; m++){
+    //                 free[k,m] = false;
+    //             }
+    //         }
+    //         placeables.Add(new Tuple<Placeable, Vector3Int>(p, new Vector3Int(roomPoint.x + t.Item1,0,roomPoint.z + t.Item2)));
+    //     }
+    // }
+
+    public void PlacePlaceable(Placeable p, int freeSpace = 2){
         float[,] a = free.Map(x => x ? 0f : 1f);
-        for(int k = 0; k < size; k++){
-            HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilter);
+        for(int k = 0; k < p.Width/2 + freeSpace; k++){
+            HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilterHorizontal);
             if(k == 0){
                 for(int i = 0; i < a.GetLength(0); i++){
                     a[i,0] = 1f;
                     a[i,a.GetLength(1)-1] = 1f;
                 }
+            }
+        }
+        for(int k = 0; k < p.Height/2 + freeSpace; k++){
+            HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilterVertical);
+            if(k == 0){
+                
                 for(int j = 0; j < a.GetLength(1); j++){
                     a[0,j] = 1f;
                     a[a.GetLength(0)-1,j] = 1f;
@@ -228,8 +267,8 @@ public class DungeonRoom : IGameObjectable{
         if(l.Count > 0){
             int index = rand.Next(0, l.Count);
             Tuple<int,int> t = l[index];
-            for(int k = t.Item1 - size; k <= t.Item1 + size; k++){
-                for(int m = t.Item2 - size; m <= t.Item2 + size; m++){
+            for(int k = t.Item1 - p.Width/2; k <= t.Item1 + p.Width/2; k++){
+                for(int m = t.Item2 - p.Height/2; m <= t.Item2 + p.Height/2; m++){
                     free[k,m] = false;
                 }
             }
