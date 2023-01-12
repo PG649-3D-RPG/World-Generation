@@ -171,17 +171,19 @@ public class DungeonRoom : IGameObjectable{
     public void AddRelativeSpawnPoint(int x, int z, int size){
         spawnPoints.Add(new Tuple<Vector3Int, int>(new Vector3Int(roomPoint.x + x, roomPoint.y, roomPoint.z + z), size)); 
     }
-    public void CreateSpawnPoint(int size){
+    public void CreateSpawnPoint(int size, float agentRadius = 1f){
         float[,] a = free.Map(x => x ? 0f : 1f);
         //HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilter);
         if(size > 0){
-            for(int i = 0; i < a.GetLength(0); i++){
-                a[i,0] = 1f;
-                a[i,a.GetLength(1)-1] = 1f;
-            }
-            for(int j = 0; j < a.GetLength(1); j++){
-                a[0,j] = 1f;
-                a[a.GetLength(0)-1,j] = 1f;
+            for(int m = 0; m < Math.Max(1, Mathf.Ceil(agentRadius)); m++){ 
+                for(int i = 0; i < a.GetLength(0); i++){
+                    a[i,m] = 1f;
+                    a[i,a.GetLength(1)-1-m] = 1f;
+                }
+                for(int j = 0; j < a.GetLength(1); j++){
+                    a[m,j] = 1f;
+                    a[a.GetLength(0)-1-m,j] = 1f;
+                }
             }
             for(int k = 0; k < size-1; k++) HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilter);
         }
