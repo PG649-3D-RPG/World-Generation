@@ -27,7 +27,7 @@ public class WorldGenerator {
         dTree.PlaceRooms(settings.levelPlacementProbability);
         dTree.PlaceCorridors(settings.minCorridorWidth, settings.maxCorridorWidth, settings.minCorridorHeight, settings.maxCorridorHeight, maxDistance: settings.maxDistance);
         dTree.AssignTypes(settings.numberOfTypes);
-        dTree.CreateSpawnPoints(settings.spawnPointsPerRoom, settings.spawnPointSize);
+        dTree.CreateSpawnPoints(settings.spawnPointsPerRoom, settings.spawnPointSize, agentRadius : settings.agentRadius);
 
         Heightmap h = new Heightmap(settings.size);
 

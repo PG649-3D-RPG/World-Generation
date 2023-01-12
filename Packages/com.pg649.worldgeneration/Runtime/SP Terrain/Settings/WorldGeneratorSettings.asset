@@ -34,3 +34,4 @@ MonoBehaviour:
   placeObjects: 1
   cubesPerRoom: 12
   freeSpaceBetweenObjects: 3
+  agentRadius: 2.25

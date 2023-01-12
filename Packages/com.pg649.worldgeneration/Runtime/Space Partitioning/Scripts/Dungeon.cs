@@ -443,11 +443,11 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         }
     }
 
-    public void CreateSpawnPoints(int spawnPointsPerRoom, int size){
+    public void CreateSpawnPoints(int spawnPointsPerRoom, int size, float agentRadius = 1f){
         if(node.Room != null){
             for(int i = 0; i < spawnPointsPerRoom; i++) node.Room.CreateSpawnPoint(size);
         }
-        foreach(DungeonTreeT c in children) c.CreateSpawnPoints(spawnPointsPerRoom, size);
+        foreach(DungeonTreeT c in children) c.CreateSpawnPoints(spawnPointsPerRoom, size, agentRadius : agentRadius);
     }
     public List<Tuple<Vector3Int, int>> SpawnPoints(){
         List<Tuple<Vector3Int, int>> l = new List<Tuple<Vector3Int, int>>();
