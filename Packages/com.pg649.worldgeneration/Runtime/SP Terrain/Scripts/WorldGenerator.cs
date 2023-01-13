@@ -27,7 +27,7 @@ public class WorldGenerator {
         dTree.PlaceRooms(settings.levelPlacementProbability);
         dTree.PlaceCorridors(settings.minCorridorWidth, settings.maxCorridorWidth, settings.minCorridorHeight, settings.maxCorridorHeight, maxDistance: settings.maxDistance);
         dTree.AssignTypes(settings.numberOfTypes);
-        dTree.CreateSpawnPoints(settings.spawnPointsPerRoom, settings.spawnPointSize, agentRadius : settings.agentRadius);
+        dTree.CreateSpawnPoints(settings.spawnPointsPerRoom, settings.spawnPointSize, agentRadius: settings.agentRadius);
 
         Heightmap h = new Heightmap(settings.size);
 
@@ -46,18 +46,23 @@ public class WorldGenerator {
         };
         h.AddTerrainToGameObject(tgo);
 
-        if(settings.placeObjects){
-            PlaceableCube cube3 = new PlaceableCube(size : 3);
-            PlaceableCube cube5 = new PlaceableCube(size : 5);
-            PlaceableCube cube7 = new PlaceableCube(size : 7);
-            dTree.AddPlaceableToRooms(cube3,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
-            dTree.AddPlaceableToRooms(cube5,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
-            dTree.AddPlaceableToRooms(cube7,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
+        if (settings.placeObjects) {
+            PlaceableCube cube3 = new PlaceableCube(size: 3);
+            PlaceableCube cube5 = new PlaceableCube(size: 5);
+            PlaceableCube cube7 = new PlaceableCube(size: 7);
+            dTree.AddPlaceableToRooms(cube3, settings.cubesPerRoom / 3, freeSpace: settings.freeSpaceBetweenObjects);
+            dTree.AddPlaceableToRooms(cube5, settings.cubesPerRoom / 3, freeSpace: settings.freeSpaceBetweenObjects);
+            dTree.AddPlaceableToRooms(cube7, settings.cubesPerRoom / 3, freeSpace: settings.freeSpaceBetweenObjects);
             dTree.AddPlaceablesToGameObject(tgo);
         }
 
         NavMeshSurface nms = tgo.GetComponent<NavMeshSurface>();
         if (nms == null) nms = tgo.AddComponent<NavMeshSurface>();
+        // generate no navmesh above noNavMeshAboveHeight
+        NavMeshModifierVolume nmv = tgo.AddComponent<NavMeshModifierVolume>();
+        nmv.area = 1; //non walkable
+        nmv.center = new Vector3(settings.size / 2, h.heightScale / 2 + settings.noNavMeshAboveHeight, settings.size / 2);
+        nmv.size = new Vector3(settings.size, h.heightScale, settings.size);
         nms.BuildNavMesh();
 
         TerrainCollider col = tgo.GetComponent<TerrainCollider>();

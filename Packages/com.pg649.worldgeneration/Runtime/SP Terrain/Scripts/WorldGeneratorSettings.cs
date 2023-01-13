@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "WorldGeneratorSettings", menuName = "PG649-WorldGeneration/World Generator Settings")]
-public class WorldGeneratorSettings : ScriptableObject
-{
+public class WorldGeneratorSettings : ScriptableObject {
     [Header("Random")]
     public int seed = 42;
     [Header("Space Partitioning")]
@@ -35,4 +32,5 @@ public class WorldGeneratorSettings : ScriptableObject
     public int freeSpaceBetweenObjects = 2;
     [Header("NavMesh")]
     public float agentRadius = 2.25f;
+    public float noNavMeshAboveHeight = 0.125f;
 }

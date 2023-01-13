@@ -2,7 +2,7 @@
 using UnityEngine;
 
 public class Heightmap {
-    private int heightScale;
+    public int heightScale;
     private int size;
     private float[,] heights;
 
