@@ -219,20 +219,20 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
     }
 
 
-    public void PlaceCorridors(int minWidth, int maxWidth, float minHeight, float maxHeight, float maxDistance = float.MaxValue){
+    public void PlaceCorridors(int minWidth, int maxWidth, float minHeight, float maxHeight, float maxDistance = float.MaxValue, bool freeCorridors = true){
         switch(children.Count){
             case 2:
-                PlaceCorridor2(minWidth,maxWidth, minHeight, maxHeight, maxDistance : maxDistance);   
+                PlaceCorridor2(minWidth,maxWidth, minHeight, maxHeight, maxDistance : maxDistance, freeCorridors : freeCorridors);   
                 break;
             case 4:
-                PlaceCorridors4(minWidth, maxWidth, minHeight, maxHeight);
+                PlaceCorridors4(minWidth, maxWidth, minHeight, maxHeight, freeCorridors : freeCorridors);
                 break;
             case 8:
                 break;
             default:
                 break;
         }
-        foreach(DungeonTreeT child in children) child.PlaceCorridors(minWidth, maxWidth, minHeight, maxHeight, maxDistance : maxDistance);
+        foreach(DungeonTreeT child in children) child.PlaceCorridors(minWidth, maxWidth, minHeight, maxHeight, maxDistance : maxDistance, freeCorridors : freeCorridors);
     }
     public int FindConnectingRoom(Vector3 fromPoint, List<DungeonRoom> roomList, DungeonRoom.Face face, float maxDistance){
         List<int> points = new List<int>();
@@ -258,7 +258,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
     }
 
     //fix remove mid2 if mid = mid2
-    private void PlaceCorridor2(int minWidth, int maxWidth, float minHeight, float maxHeight, float maxDistance = float.MaxValue){
+    private void PlaceCorridor2(int minWidth, int maxWidth, float minHeight, float maxHeight, float maxDistance = float.MaxValue, bool freeCorridors = true){
         int width = node.Rand.Next(minWidth, maxWidth+1);
         float height = (float)node.Rand.NextDouble()*(maxHeight-minHeight)+minHeight;
         if((node.Size[0] == children[0].Node.Size[0] && children[0].Node.RoomsNorth.Count > 0 && children[1].Node.RoomsSouth.Count > 0) || node.Size[1] == children[0].Node.Size[1] && children[0].Node.RoomsEast.Count > 0 && children[1].Node.RoomsWest.Count > 0){
@@ -281,8 +281,8 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                 mid2 = new Vector3Int(end.x,end.y, children[0].Node.Size[1]);
                 startFace = DungeonRoom.Face.Back;
                 endFace = DungeonRoom.Face.Front;
-                startRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(startFace, startPointIndex, width));
-                endRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(endFace, endPointIndex,width));
+                startRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(startFace, startPointIndex, width), freeCorridors : freeCorridors);
+                endRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(endFace, endPointIndex,width), freeCorridors : freeCorridors);
             }
             else{
                 int cri1 = node.Rand.Next(0,children[0].Node.RoomsEast.Count);
@@ -304,8 +304,8 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
                 mid2 = new Vector3Int(children[0].Node.Size[0],end.y, end.z);
                 startFace = DungeonRoom.Face.Right;
                 endFace = DungeonRoom.Face.Left;
-                startRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(startFace, startPointIndex,width));
-                endRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(endFace, endPointIndex,width));
+                startRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(startFace, startPointIndex,width), freeCorridors : freeCorridors);
+                endRoom.AddCorridorPoint(new Tuple<DungeonRoom.Face, int, int>(endFace, endPointIndex,width), freeCorridors : freeCorridors);
             }
             corridor.PartitionPoint = node.PointV;
             corridor.StartRoom = startRoom;
@@ -319,7 +319,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         }
     }
 
-    private void PlaceCorridors4(int minWidth, int maxWidth, float minHeight, float maxHeight){
+    private void PlaceCorridors4(int minWidth, int maxWidth, float minHeight, float maxHeight, bool freeCorridors = true){
         if(children[0].Node.RoomsEast.Count > 0 && children[1].Node.RoomsWest.Count > 0){
             int width = node.Rand.Next(minWidth, maxWidth+1);
             float height = (float)node.Rand.NextDouble()*(maxHeight-minHeight)+minHeight;
@@ -445,7 +445,7 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
 
     public void CreateSpawnPoints(int spawnPointsPerRoom, int size, float agentRadius = 1f){
         if(node.Room != null){
-            for(int i = 0; i < spawnPointsPerRoom; i++) node.Room.CreateSpawnPoint(size);
+            for(int i = 0; i < spawnPointsPerRoom; i++) node.Room.CreateSpawnPoint(size, agentRadius : agentRadius);
         }
         foreach(DungeonTreeT c in children) c.CreateSpawnPoints(spawnPointsPerRoom, size, agentRadius : agentRadius);
     }

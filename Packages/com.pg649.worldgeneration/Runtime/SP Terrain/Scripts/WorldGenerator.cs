@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Unity.AI.Navigation;
 using UnityEngine;
 
@@ -25,7 +26,7 @@ public class WorldGenerator {
         dTree.Root.Node.FHeight = DungeonTreeNode.fHeight2DMinMax(3, 4);
         dTree.Root.Node.MinMaxMargin = minMaxMargin;
         dTree.PlaceRooms(settings.levelPlacementProbability);
-        dTree.PlaceCorridors(settings.minCorridorWidth, settings.maxCorridorWidth, settings.minCorridorHeight, settings.maxCorridorHeight, maxDistance: settings.maxDistance);
+        dTree.PlaceCorridors(settings.minCorridorWidth, settings.maxCorridorWidth, settings.minCorridorHeight, settings.maxCorridorHeight, maxDistance: settings.maxDistance, freeCorridors : settings.freeCorridors);
         dTree.AssignTypes(settings.numberOfTypes);
         dTree.CreateSpawnPoints(settings.spawnPointsPerRoom, settings.spawnPointSize, agentRadius: settings.agentRadius);
 
@@ -41,18 +42,26 @@ public class WorldGenerator {
         h.AverageFilter(mask: tm.levelsCorridors.InvertedBorderMask(6), numberOfRuns: 15);
         h.SetByMask(tm.levelsCorridors.InvertedBorderMask(1), 1.1f);
 
+        List<Tuple<Vector3Int, int>> sp = dTree.SpawnPoints();
+        // foreach(Tuple<Vector3Int, int> t in sp){
+        //     h.heights[t.Item1.x,t.Item1.z] = .01f;
+        // }
+
         GameObject tgo = new GameObject("Terrain") {
             tag = "ground"
         };
         h.AddTerrainToGameObject(tgo);
 
-        if (settings.placeObjects) {
-            PlaceableCube cube3 = new PlaceableCube(size: 3);
-            PlaceableCube cube5 = new PlaceableCube(size: 5);
-            PlaceableCube cube7 = new PlaceableCube(size: 7);
-            dTree.AddPlaceableToRooms(cube3, settings.cubesPerRoom / 3, freeSpace: settings.freeSpaceBetweenObjects);
-            dTree.AddPlaceableToRooms(cube5, settings.cubesPerRoom / 3, freeSpace: settings.freeSpaceBetweenObjects);
-            dTree.AddPlaceableToRooms(cube7, settings.cubesPerRoom / 3, freeSpace: settings.freeSpaceBetweenObjects);
+        TerrainMod tmod = new TerrainMod(tgo.GetComponent<Terrain>(), settings.size, settings.size);
+        if(settings.markSpawnPoints) tmod.MarkSpawnPoints( sp, Texture2D.grayTexture);
+
+        if(settings.placeObjects){
+            PlaceableCube cube3 = new PlaceableCube(size : 3);
+            PlaceableCube cube5 = new PlaceableCube(size : 5);
+            PlaceableCube cube7 = new PlaceableCube(size : 7);
+            dTree.AddPlaceableToRooms(cube7,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
+            dTree.AddPlaceableToRooms(cube5,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
+            dTree.AddPlaceableToRooms(cube3,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
             dTree.AddPlaceablesToGameObject(tgo);
         }
 
@@ -71,7 +80,9 @@ public class WorldGenerator {
 
         // Add spawnPoints to misc terrain data Component
         var miscData = tgo.AddComponent<MiscTerrainData>();
-        miscData.SpawnPoints = dTree.SpawnPoints();
+        miscData.SpawnPoints = sp;
+        
+
 
         return tgo;
     }

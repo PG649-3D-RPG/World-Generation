@@ -160,12 +160,14 @@ public class DungeonRoom : IGameObjectable{
         }
     }
 
-    public void AddCorridorPoint(Tuple<Face, int,int> t){
+    public void AddCorridorPoint(Tuple<Face, int,int> t, bool freeCorridors = true){
         corridorPoints.Add(t);
-        foreach(Tuple<Face, int,int> tp in corridorPoints){
-             if(tp.Item1 != t.Item1){
-                SetFreePath(tp.Item1, t.Item1, tp.Item2, t.Item2, tp.Item3, t.Item3);
-             }
+        if(freeCorridors){
+            foreach(Tuple<Face, int,int> tp in corridorPoints){
+                if(tp.Item1 != t.Item1){
+                    SetFreePath(tp.Item1, t.Item1, tp.Item2, t.Item2, tp.Item3, t.Item3);
+                }
+            }
         }
     }
     public void AddRelativeSpawnPoint(int x, int z, int size){
@@ -174,8 +176,7 @@ public class DungeonRoom : IGameObjectable{
     public void CreateSpawnPoint(int size, float agentRadius = 1f){
         float[,] a = free.Map(x => x ? 0f : 1f);
         //HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilter);
-        if(size > 0){
-            for(int m = 0; m < Math.Max(1, Mathf.Ceil(agentRadius)); m++){ 
+            for(int m = 0; m < Mathf.Ceil(agentRadius); m++){ 
                 for(int i = 0; i < a.GetLength(0); i++){
                     a[i,m] = 1f;
                     a[i,a.GetLength(1)-1-m] = 1f;
@@ -186,7 +187,6 @@ public class DungeonRoom : IGameObjectable{
                 }
             }
             for(int k = 0; k < size-1; k++) HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilter);
-        }
         List<Tuple<int,int>> l = new List<Tuple<int,int>>();
         for(int i = 0; i < a.GetLength(0); i++){
             for(int j = 0; j < a.GetLength(1); j++){
