@@ -24,7 +24,7 @@ public class TerrainMod{
             tla[i] = td.terrainLayers[i];
         }
         tla[tlc] = tlSpawnPoints;
-        td.SetTerrainLayersRegisterUndo(tla, "Add SpawnPoints layer");
+        td.terrainLayers = tla;
 
         //Assign 0f when other parts have textures
         float[,,] alphaData = td.GetAlphamaps(0, 0, td.alphamapWidth, td.alphamapHeight);
