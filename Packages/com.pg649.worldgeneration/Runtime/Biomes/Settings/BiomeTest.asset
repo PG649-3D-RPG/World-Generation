@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c4eb592660abe94d82dad23a1d8faef, type: 3}
+  m_Name: BiomeTest
+  m_EditorClassIdentifier: 
+  objectsSquareMeter: 0.1
+  seedIncrement: 0
+  objects:
+  - p: 0.5
+    settings: {fileID: 11400000, guid: 5372403a6ebf86648b3d3208c28c5eb9, type: 2}
+  - p: 0.5
+    settings: {fileID: 11400000, guid: 84a44d6fdc2f1f34f9c7e8c3dab32af1, type: 2}

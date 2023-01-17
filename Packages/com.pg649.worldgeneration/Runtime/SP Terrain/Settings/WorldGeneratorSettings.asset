@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: WorldGeneratorSettings
   m_EditorClassIdentifier: 
   seed: 54
-  size: 512
+  size: 256
   partitionMode: 0
   minPartitionWidth: 64
   minPartitionDepth: 64
@@ -38,3 +38,5 @@ MonoBehaviour:
   freeSpaceBetweenObjects: 4
   agentRadius: 2.25
   noNavMeshAboveHeight: 0.125
+  biomeSettings:
+  - {fileID: 11400000, guid: b1fc63fb329b2f04a90c194d449e0fbc, type: 2}

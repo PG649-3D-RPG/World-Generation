@@ -55,15 +55,22 @@ public class WorldGenerator {
         TerrainMod tmod = new TerrainMod(tgo.GetComponent<Terrain>(), settings.size, settings.size);
         if(settings.markSpawnPoints) tmod.MarkSpawnPoints( sp, Texture2D.grayTexture);
 
-        if(settings.placeObjects){
+        if(settings.biomeSettings.Length == settings.numberOfTypes && settings.numberOfTypes > 0){
+            foreach(DungeonRoom room in dTree.GetRooms()){
+                foreach(Placeable p in settings.biomeSettings[room.Type].GetPlaceables(room.Width, room.Depth, settings.seed)){
+                    room.PlacePlaceable(p, freeSpace : settings.freeSpaceBetweenObjects);
+                }
+            }
+        }
+        else if(settings.placeObjects){
             PlaceableCube cube3 = new PlaceableCube(size : 3);
             PlaceableCube cube5 = new PlaceableCube(size : 5);
             PlaceableCube cube7 = new PlaceableCube(size : 7);
             dTree.AddPlaceableToRooms(cube7,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
             dTree.AddPlaceableToRooms(cube5,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
             dTree.AddPlaceableToRooms(cube3,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
-            dTree.AddPlaceablesToGameObject(tgo);
         }
+        dTree.AddPlaceablesToGameObject(tgo);
 
         NavMeshSurface nms = tgo.GetComponent<NavMeshSurface>();
         if (nms == null) nms = tgo.AddComponent<NavMeshSurface>();

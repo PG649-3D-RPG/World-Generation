@@ -8,7 +8,7 @@ public class LSP_Test : MonoBehaviour
 
     void Start(){
         LSP lsp = new LSP(settings);
-        GameObject g = lsp.ToGameObject();
+        GameObject g = lsp.ToGameObjectPrimitive();
         Debug.Log(g);
     }
 }

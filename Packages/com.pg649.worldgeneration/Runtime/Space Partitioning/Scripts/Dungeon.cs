@@ -532,4 +532,11 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         return new TerrainMasks(RoomsMask(), RoomsFreeMask(), CorridorsMask(), typeMasks);
     }
 
+    public List<DungeonRoom> GetRooms(){
+        List<DungeonRoom> l = new List<DungeonRoom>();
+        foreach(DungeonTreeT t in Leaves()){
+            if(t.node.Room != null) l.Add(t.node.Room);
+        }
+        return l;
+    }
 }
