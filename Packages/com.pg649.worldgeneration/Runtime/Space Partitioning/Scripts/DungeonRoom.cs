@@ -239,7 +239,7 @@ public class DungeonRoom : IGameObjectable{
     //     }
     // }
 
-    public void PlacePlaceable(Placeable p, int freeSpace = 2){
+    public bool PlacePlaceable(Placeable p, int freeSpace = 2){
         float[,] a = free.Map(x => x ? 0f : 1f);
         for(int k = 0; k < p.Width/2 + freeSpace; k++){
             HeightmapTransforms.ApplyFilter(a, HeightmapTransforms.extensionFilterHorizontal);
@@ -266,7 +266,8 @@ public class DungeonRoom : IGameObjectable{
                 if(a[i,j] == 0f) l.Add(new Tuple<int,int>(i,j));
             }
         }
-        if(l.Count > 0){
+        bool canBePlaced = l.Count > 0;
+        if(canBePlaced){
             int index = rand.Next(0, l.Count);
             Tuple<int,int> t = l[index];
             for(int k = t.Item1 - p.Width/2; k <= t.Item1 + p.Width/2; k++){
@@ -276,6 +277,7 @@ public class DungeonRoom : IGameObjectable{
             }
             placeables.Add(new Tuple<Placeable, Vector3Int>(p, new Vector3Int(roomPoint.x + t.Item1,0,roomPoint.z + t.Item2)));
         }
+        return canBePlaced;
     }
 
     public Mesh ToMesh(){

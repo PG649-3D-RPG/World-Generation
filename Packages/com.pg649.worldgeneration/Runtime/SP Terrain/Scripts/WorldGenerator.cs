@@ -56,9 +56,16 @@ public class WorldGenerator {
         if(settings.markSpawnPoints) tmod.MarkSpawnPoints( sp, Texture2D.grayTexture);
 
         if(settings.biomeSettings.Length == settings.numberOfTypes && settings.numberOfTypes > 0){
-            foreach(DungeonRoom room in dTree.GetRooms()){
-                foreach(Placeable p in settings.biomeSettings[room.Type].GetPlaceables(room.Width, room.Depth, settings.seed)){
-                    room.PlacePlaceable(p, freeSpace : settings.freeSpaceBetweenObjects);
+            List<DungeonRoom>[] drla = dTree.GetRoomsByType();
+            for(int i = 0; i < drla.Length; i++){
+                Placeable[] pl = settings.biomeSettings[i].GetPlaceables(settings.seed);
+                foreach(DungeonRoom drl in drla[i]){
+                    float n = settings.biomeSettings[i].objectsSquareMeter * drl.Width * drl.Depth;
+                    for(int j = 0; j < settings.biomeSettings[i].objects.Length; j++){
+                        for(int k = 0; k < settings.biomeSettings[i].objects[j].p * n; k++){
+                            if(!drl.PlacePlaceable(pl[j], freeSpace : settings.freeSpaceBetweenObjects)) break;
+                        }
+                    }
                 }
             }
         }

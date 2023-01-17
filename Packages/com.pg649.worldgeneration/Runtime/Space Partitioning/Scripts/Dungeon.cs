@@ -539,4 +539,15 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         }
         return l;
     }
+
+    public List<DungeonRoom>[] GetRoomsByType(){
+        List<DungeonRoom>[] a = new List<DungeonRoom>[node.NumberOfTypes];
+        for(int i = 0; i < a.Length; i++){
+            a[i] = new List<DungeonRoom>();
+        }
+        foreach(DungeonTreeT t in Leaves()){
+            if(t.node.Room != null) a[t.node.Room.Type].Add(t.node.Room);
+        }
+        return a;
+    }
 }
