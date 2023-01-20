@@ -9,16 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4510a8384883b8b4eaa21d0fab727d49, type: 3}
-  m_Name: LSP_Tree1
+  m_Script: {fileID: 11500000, guid: 6c4eb592660abe94d82dad23a1d8faef, type: 3}
+  m_Name: BiomeForest01
   m_EditorClassIdentifier: 
-  distance: 1
-  defaultAngle: 28
-  initialDirection: 0
-  thickness: 1
-  translatePoints: 1
-  startString: FFFFA
-  iterations: 7
-  rules:
-  - A=[B]////[B]////[B]
-  - B=&FFFA
+  objectsSquareMeter: 0.1
+  objects:
+  - p: 1
+    settings: {fileID: 11400000, guid: 5372403a6ebf86648b3d3208c28c5eb9, type: 2}

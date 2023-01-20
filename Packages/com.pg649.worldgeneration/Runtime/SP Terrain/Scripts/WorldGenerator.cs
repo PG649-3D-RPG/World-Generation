@@ -72,7 +72,31 @@ public class WorldGenerator {
         h.AddTerrainToGameObject(tgo);
 
         TerrainMod tmod = new TerrainMod(tgo.GetComponent<Terrain>(), settings.size, settings.size);
-        if (settings.markSpawnPoints) tmod.MarkSpawnPoints(sp, Texture2D.grayTexture);
+        if(settings.markSpawnPoints) tmod.MarkSpawnPoints( sp, Texture2D.grayTexture);
+
+        if(settings.biomeSettings.Length == settings.numberOfTypes && settings.numberOfTypes > 0){
+            List<DungeonRoom>[] drla = dTree.GetRoomsByType();
+            for(int i = 0; i < drla.Length; i++){
+                Placeable[] pl = settings.biomeSettings[i].GetPlaceables(settings.seed);
+                foreach(DungeonRoom drl in drla[i]){
+                    float n = settings.biomeSettings[i].objectsSquareMeter * drl.Width * drl.Depth;
+                    for(int j = 0; j < settings.biomeSettings[i].objects.Length; j++){
+                        for(int k = 0; k < settings.biomeSettings[i].objects[j].p * n; k++){
+                            if(!drl.PlacePlaceable(pl[j], freeSpace : settings.freeSpaceBetweenObjects)) break;
+                        }
+                    }
+                }
+            }
+        }
+        else if(settings.placeObjects){
+            PlaceableCube cube3 = new PlaceableCube(size : 3);
+            PlaceableCube cube5 = new PlaceableCube(size : 5);
+            PlaceableCube cube7 = new PlaceableCube(size : 7);
+            dTree.AddPlaceableToRooms(cube7,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
+            dTree.AddPlaceableToRooms(cube5,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
+            dTree.AddPlaceableToRooms(cube3,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
+        }
+        dTree.AddPlaceablesToGameObject(tgo);
 
         NavMeshSurface nms = tgo.GetComponent<NavMeshSurface>();
         if (nms == null) nms = tgo.AddComponent<NavMeshSurface>();

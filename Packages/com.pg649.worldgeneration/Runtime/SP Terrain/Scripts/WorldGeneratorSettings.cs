@@ -35,4 +35,6 @@ public class WorldGeneratorSettings : ScriptableObject {
     [Header("NavMesh")]
     //public float agentRadius = 2.25f;
     public float noNavMeshAboveHeight = 0.125f;
+    [Space]
+    public BiomeSettings[] biomeSettings;
 }
