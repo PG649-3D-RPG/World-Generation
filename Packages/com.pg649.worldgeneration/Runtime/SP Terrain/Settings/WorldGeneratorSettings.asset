@@ -27,16 +27,12 @@ MonoBehaviour:
   spawnPointsPerRoom: 10
   spawnPointSize: 0
   markSpawnPoints: 1
-  minCorridorWidth: 10
-  maxCorridorWidth: 15
   minCorridorHeight: 2
   maxCorridorHeight: 3
   maxDistance: 12
   freeCorridors: 1
   placeObjects: 1
   cubesPerRoom: 12
-  freeSpaceBetweenObjects: 4
-  agentRadius: 2.25
   noNavMeshAboveHeight: 0.125
   biomeSettings:
   - {fileID: 11400000, guid: b1fc63fb329b2f04a90c194d449e0fbc, type: 2}

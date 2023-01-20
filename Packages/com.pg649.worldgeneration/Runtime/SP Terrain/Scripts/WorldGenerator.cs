@@ -17,7 +17,7 @@ public class WorldGenerator {
     public static GameObject Generate(WorldGeneratorSettings settings) {
         var nmbs = GetNavMeshBuildSettings();
         //Debug.Log(nmbs.agentRadius);
-        var voxelSize = nmbs.voxelSize / 2; // more accurate navmesh
+        var voxelSize = nmbs.agentRadius / 8; // more accurate navmesh
         int navmeshAgentSizeBuffer = Mathf.CeilToInt((4 * voxelSize + nmbs.agentRadius) * 2) + 1; // https://docs.unity3d.com/Manual/nav-AdvancedSettings.html
         //Debug.Log(navmeshAgentSizeBuffer);
         int minCorridorWidth = navmeshAgentSizeBuffer;
@@ -72,51 +72,41 @@ public class WorldGenerator {
         h.AddTerrainToGameObject(tgo);
 
         TerrainMod tmod = new TerrainMod(tgo.GetComponent<Terrain>(), settings.size, settings.size);
-        if(settings.markSpawnPoints) tmod.MarkSpawnPoints( sp, Texture2D.grayTexture);
+        if (settings.markSpawnPoints) tmod.MarkSpawnPoints(sp, Texture2D.grayTexture);
 
-        if(settings.biomeSettings.Length == settings.numberOfTypes && settings.numberOfTypes > 0){
+        if (settings.biomeSettings.Length == settings.numberOfTypes && settings.numberOfTypes > 0) {
             List<DungeonRoom>[] drla = dTree.GetRoomsByType();
-            for(int i = 0; i < drla.Length; i++){
+            for (int i = 0; i < drla.Length; i++) {
                 Placeable[] pl = settings.biomeSettings[i].GetPlaceables(settings.seed);
-                foreach(DungeonRoom drl in drla[i]){
+                foreach (DungeonRoom drl in drla[i]) {
                     float n = settings.biomeSettings[i].objectsSquareMeter * drl.Width * drl.Depth;
-                    for(int j = 0; j < settings.biomeSettings[i].objects.Length; j++){
-                        for(int k = 0; k < settings.biomeSettings[i].objects[j].p * n; k++){
-                            if(!drl.PlacePlaceable(pl[j], freeSpace : settings.freeSpaceBetweenObjects)) break;
+                    for (int j = 0; j < settings.biomeSettings[i].objects.Length; j++) {
+                        for (int k = 0; k < settings.biomeSettings[i].objects[j].p * n; k++) {
+                            if (!drl.PlacePlaceable(pl[j], freeSpace: navmeshAgentSizeBuffer)) break;
                         }
                     }
                 }
             }
-        }
-        else if(settings.placeObjects){
-            PlaceableCube cube3 = new PlaceableCube(size : 3);
-            PlaceableCube cube5 = new PlaceableCube(size : 5);
-            PlaceableCube cube7 = new PlaceableCube(size : 7);
-            dTree.AddPlaceableToRooms(cube7,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
-            dTree.AddPlaceableToRooms(cube5,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
-            dTree.AddPlaceableToRooms(cube3,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
-        }
-        dTree.AddPlaceablesToGameObject(tgo);
-
-        NavMeshSurface nms = tgo.GetComponent<NavMeshSurface>();
-        if (nms == null) nms = tgo.AddComponent<NavMeshSurface>();
-        // generate no navmesh above noNavMeshAboveHeight
-        NavMeshModifierVolume nmv = tgo.AddComponent<NavMeshModifierVolume>();
-        nmv.area = 1; //non walkable
-        nmv.center = new Vector3(settings.size / 2, h.heightScale / 2 + settings.noNavMeshAboveHeight, settings.size / 2);
-        nmv.size = new Vector3(settings.size, h.heightScale, settings.size);
-        nms.overrideVoxelSize = true; // set the more accurate
-        nms.voxelSize = voxelSize;
-
-        if (settings.placeObjects) {
+        } else if (settings.placeObjects) {
             PlaceableCube cube3 = new PlaceableCube(size: 3);
             PlaceableCube cube5 = new PlaceableCube(size: 5);
             PlaceableCube cube7 = new PlaceableCube(size: 7);
             dTree.AddPlaceableToRooms(cube7, settings.cubesPerRoom / 3, freeSpace: navmeshAgentSizeBuffer);
             dTree.AddPlaceableToRooms(cube5, settings.cubesPerRoom / 3, freeSpace: navmeshAgentSizeBuffer);
             dTree.AddPlaceableToRooms(cube3, settings.cubesPerRoom / 3, freeSpace: navmeshAgentSizeBuffer);
-            dTree.AddPlaceablesToGameObject(tgo);
         }
+        dTree.AddPlaceablesToGameObject(tgo);
+
+        NavMeshSurface nms = tgo.GetComponent<NavMeshSurface>();
+        if (nms == null) nms = tgo.AddComponent<NavMeshSurface>();
+        // generate no navmesh above noNavMeshAboveHeight
+        NavMeshModifierVolume nmv = tgo.GetComponent<NavMeshModifierVolume>();
+        if (nmv == null) nmv = tgo.AddComponent<NavMeshModifierVolume>();
+        nmv.area = 1; //non walkable
+        nmv.center = new Vector3(settings.size / 2, h.heightScale / 2 + settings.noNavMeshAboveHeight, settings.size / 2);
+        nmv.size = new Vector3(settings.size, h.heightScale, settings.size);
+        nms.overrideVoxelSize = true; // set the more accurate
+        nms.voxelSize = voxelSize;
 
         nms.BuildNavMesh();
 
@@ -127,8 +117,6 @@ public class WorldGenerator {
         // Add spawnPoints to misc terrain data Component
         var miscData = tgo.AddComponent<MiscTerrainData>();
         miscData.SpawnPoints = sp;
-
-
 
         return tgo;
     }
