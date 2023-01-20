@@ -27,13 +27,10 @@ MonoBehaviour:
   spawnPointsPerRoom: 8
   spawnPointSize: 0
   markSpawnPoints: 1
-  minCorridorWidth: 6
-  maxCorridorWidth: 8
   minCorridorHeight: 2
   maxCorridorHeight: 3
   maxDistance: 12
   freeCorridors: 0
   placeObjects: 1
-  cubesPerRoom: 42
-  freeSpaceBetweenObjects: 5
-  agentRadius: 2.25
+  cubesPerRoom: 30
+  noNavMeshAboveHeight: 0.125

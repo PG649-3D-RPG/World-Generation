@@ -22,8 +22,8 @@ public class WorldGeneratorSettings : ScriptableObject {
     public int spawnPointSize = 1;
     public bool markSpawnPoints = true;
     [Header("Corridors")]
-    public int minCorridorWidth = 6;
-    public int maxCorridorWidth = 10;
+    // public int minCorridorWidth = 6;
+    // public int maxCorridorWidth = 10;
     public float minCorridorHeight = 2;
     public float maxCorridorHeight = 3;
     public float maxDistance = 32;
@@ -31,8 +31,8 @@ public class WorldGeneratorSettings : ScriptableObject {
     [Header("PlaceObjects")]
     public bool placeObjects = true;
     public int cubesPerRoom = 12;
-    public int freeSpaceBetweenObjects = 2;
+    //public int freeSpaceBetweenObjects = 2;
     [Header("NavMesh")]
-    public float agentRadius = 2.25f;
+    //public float agentRadius = 2.25f;
     public float noNavMeshAboveHeight = 0.125f;
 }

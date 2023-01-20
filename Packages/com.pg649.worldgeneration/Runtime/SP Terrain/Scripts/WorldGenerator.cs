@@ -2,10 +2,29 @@
 using System.Collections.Generic;
 using Unity.AI.Navigation;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class WorldGenerator {
+    private static NavMeshBuildSettings GetNavMeshBuildSettings() {
+        // get navmesh agent settings
+        GameObject tmp = new GameObject();
+        var tnms = tmp.AddComponent<NavMeshSurface>();
+        var settings = tnms.GetBuildSettings();
+        UnityEngine.Object.Destroy(tnms);
+        return settings;
+    }
 
     public static GameObject Generate(WorldGeneratorSettings settings) {
+        var nmbs = GetNavMeshBuildSettings();
+        //Debug.Log(nmbs.agentRadius);
+        var voxelSize = nmbs.voxelSize / 2; // more accurate navmesh
+        int navmeshAgentSizeBuffer = Mathf.CeilToInt((4 * voxelSize + nmbs.agentRadius) * 2) + 1; // https://docs.unity3d.com/Manual/nav-AdvancedSettings.html
+        //Debug.Log(navmeshAgentSizeBuffer);
+        int minCorridorWidth = navmeshAgentSizeBuffer;
+        int maxCorridorWidth = minCorridorWidth + 4;
+        //Debug.Log(minCorridorWidth);
+        //Debug.Log(maxCorridorWidth);
+
         int[] spsize = new int[] { settings.size, settings.size };
         int[] minSize = new int[] { settings.minPartitionWidth, settings.minPartitionDepth };
         Tuple<int, int>[] minMaxMargin = new Tuple<int, int>[] { new Tuple<int, int>(settings.leftRightMinMargin, settings.leftRightMaxMargin), new Tuple<int, int>(settings.frontBackMinMargin, settings.frontBackMaxMargin) };
@@ -26,9 +45,9 @@ public class WorldGenerator {
         dTree.Root.Node.FHeight = DungeonTreeNode.fHeight2DMinMax(3, 4);
         dTree.Root.Node.MinMaxMargin = minMaxMargin;
         dTree.PlaceRooms(settings.levelPlacementProbability);
-        dTree.PlaceCorridors(settings.minCorridorWidth, settings.maxCorridorWidth, settings.minCorridorHeight, settings.maxCorridorHeight, maxDistance: settings.maxDistance, freeCorridors : settings.freeCorridors);
+        dTree.PlaceCorridors(minCorridorWidth, maxCorridorWidth, settings.minCorridorHeight, settings.maxCorridorHeight, maxDistance: settings.maxDistance, freeCorridors: settings.freeCorridors);
         dTree.AssignTypes(settings.numberOfTypes);
-        dTree.CreateSpawnPoints(settings.spawnPointsPerRoom, settings.spawnPointSize, agentRadius: settings.agentRadius);
+        dTree.CreateSpawnPoints(settings.spawnPointsPerRoom, settings.spawnPointSize, agentRadius: nmbs.agentRadius);
 
         Heightmap h = new Heightmap(settings.size);
 
@@ -53,17 +72,7 @@ public class WorldGenerator {
         h.AddTerrainToGameObject(tgo);
 
         TerrainMod tmod = new TerrainMod(tgo.GetComponent<Terrain>(), settings.size, settings.size);
-        if(settings.markSpawnPoints) tmod.MarkSpawnPoints( sp, Texture2D.grayTexture);
-
-        if(settings.placeObjects){
-            PlaceableCube cube3 = new PlaceableCube(size : 3);
-            PlaceableCube cube5 = new PlaceableCube(size : 5);
-            PlaceableCube cube7 = new PlaceableCube(size : 7);
-            dTree.AddPlaceableToRooms(cube7,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
-            dTree.AddPlaceableToRooms(cube5,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
-            dTree.AddPlaceableToRooms(cube3,settings.cubesPerRoom/3, freeSpace : settings.freeSpaceBetweenObjects);
-            dTree.AddPlaceablesToGameObject(tgo);
-        }
+        if (settings.markSpawnPoints) tmod.MarkSpawnPoints(sp, Texture2D.grayTexture);
 
         NavMeshSurface nms = tgo.GetComponent<NavMeshSurface>();
         if (nms == null) nms = tgo.AddComponent<NavMeshSurface>();
@@ -72,6 +81,19 @@ public class WorldGenerator {
         nmv.area = 1; //non walkable
         nmv.center = new Vector3(settings.size / 2, h.heightScale / 2 + settings.noNavMeshAboveHeight, settings.size / 2);
         nmv.size = new Vector3(settings.size, h.heightScale, settings.size);
+        nms.overrideVoxelSize = true; // set the more accurate
+        nms.voxelSize = voxelSize;
+
+        if (settings.placeObjects) {
+            PlaceableCube cube3 = new PlaceableCube(size: 3);
+            PlaceableCube cube5 = new PlaceableCube(size: 5);
+            PlaceableCube cube7 = new PlaceableCube(size: 7);
+            dTree.AddPlaceableToRooms(cube7, settings.cubesPerRoom / 3, freeSpace: navmeshAgentSizeBuffer);
+            dTree.AddPlaceableToRooms(cube5, settings.cubesPerRoom / 3, freeSpace: navmeshAgentSizeBuffer);
+            dTree.AddPlaceableToRooms(cube3, settings.cubesPerRoom / 3, freeSpace: navmeshAgentSizeBuffer);
+            dTree.AddPlaceablesToGameObject(tgo);
+        }
+
         nms.BuildNavMesh();
 
         TerrainCollider col = tgo.GetComponent<TerrainCollider>();
@@ -81,7 +103,7 @@ public class WorldGenerator {
         // Add spawnPoints to misc terrain data Component
         var miscData = tgo.AddComponent<MiscTerrainData>();
         miscData.SpawnPoints = sp;
-        
+
 
 
         return tgo;
