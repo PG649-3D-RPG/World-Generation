@@ -12,6 +12,7 @@ public class PlaceableCube : Placeable {
     public override GameObject ToGameObject() {
         GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
         go.transform.localScale = new Vector3(size, size, size);
+        go.GetComponent<Renderer>().material = Resources.Load<Material>("Materials/instancing");
         // set cube to non walkable area
         var nmm = go.AddComponent<NavMeshModifier>();
         nmm.overrideArea = true;

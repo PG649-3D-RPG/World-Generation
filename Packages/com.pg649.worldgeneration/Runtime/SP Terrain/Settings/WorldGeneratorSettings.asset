@@ -15,8 +15,8 @@ MonoBehaviour:
   seed: 54
   size: 512
   partitionMode: 0
-  minPartitionWidth: 64
-  minPartitionDepth: 64
+  minPartitionWidth: 128
+  minPartitionDepth: 128
   skipChildren: 0
   leftRightMinMargin: 11
   leftRightMaxMargin: 16
@@ -32,7 +32,7 @@ MonoBehaviour:
   maxDistance: 12
   freeCorridors: 1
   placeObjects: 1
-  cubesPerRoom: 12
+  cubesPerRoom: 30
   noNavMeshAboveHeight: 0.125
   biomeSettings:
   - {fileID: 11400000, guid: b1fc63fb329b2f04a90c194d449e0fbc, type: 2}

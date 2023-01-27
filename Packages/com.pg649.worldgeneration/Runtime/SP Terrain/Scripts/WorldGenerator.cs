@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.AI;
@@ -15,6 +16,10 @@ public class WorldGenerator {
     }
 
     public static GameObject Generate(WorldGeneratorSettings settings) {
+        System.Diagnostics.Stopwatch sw = new();
+
+        sw.Start();
+
         var nmbs = GetNavMeshBuildSettings();
         //Debug.Log(nmbs.agentRadius);
         var voxelSize = nmbs.agentRadius / 8; // more accurate navmesh
@@ -53,6 +58,12 @@ public class WorldGenerator {
 
         TerrainMasks tm = dTree.ToTerrainMasks();
 
+
+        sw.Stop();
+        Debug.Log("Runtime pre:\t " + sw.Elapsed);
+        sw.Reset();
+        sw.Restart();
+
         h.SetByMask(tm.intermediate, 70);
         h.AverageFilter(mask: tm.intermediate, numberOfRuns: 600);
         h.PerlinNoise(maxAddedHeight: 20f, scale: 0.03f, tm.intermediate, fractalRuns: 3);
@@ -74,19 +85,35 @@ public class WorldGenerator {
         TerrainMod tmod = new TerrainMod(tgo.GetComponent<Terrain>(), settings.size, settings.size);
         if (settings.markSpawnPoints) tmod.MarkSpawnPoints(sp, Texture2D.grayTexture);
 
+        sw.Stop();
+        Debug.Log("Runtime filters:\t " + sw.Elapsed);
+        sw.Reset();
+        sw.Restart();
+
         if (settings.biomeSettings.Length == settings.numberOfTypes && settings.numberOfTypes > 0) {
             List<DungeonRoom>[] drla = dTree.GetRoomsByType();
             for (int i = 0; i < drla.Length; i++) {
                 Placeable[] pl = settings.biomeSettings[i].GetPlaceables(settings.seed);
-                foreach (DungeonRoom drl in drla[i]) {
+                Parallel.ForEach(drla[i], drl => {
                     float n = settings.biomeSettings[i].objectsSquareMeter * drl.Width * drl.Depth;
                     for (int j = 0; j < settings.biomeSettings[i].objects.Length; j++) {
                         for (int k = 0; k < settings.biomeSettings[i].objects[j].p * n; k++) {
                             if (!drl.PlacePlaceable(pl[j], freeSpace: navmeshAgentSizeBuffer)) break;
                         }
                     }
-                }
+                });
             }
+            // for (int i = 0; i < drla.Length; i++) {
+            //     Placeable[] pl = settings.biomeSettings[i].GetPlaceables(settings.seed);
+            //     foreach (DungeonRoom drl in drla[i]) {
+            //         float n = settings.biomeSettings[i].objectsSquareMeter * drl.Width * drl.Depth;
+            //         for (int j = 0; j < settings.biomeSettings[i].objects.Length; j++) {
+            //             for (int k = 0; k < settings.biomeSettings[i].objects[j].p * n; k++) {
+            //                 if (!drl.PlacePlaceable(pl[j], freeSpace: navmeshAgentSizeBuffer)) break;
+            //             }
+            //         }
+            //     }
+            // }
         } else if (settings.placeObjects) {
             PlaceableCube cube3 = new PlaceableCube(size: 3);
             PlaceableCube cube5 = new PlaceableCube(size: 5);
@@ -95,7 +122,18 @@ public class WorldGenerator {
             dTree.AddPlaceableToRooms(cube5, settings.cubesPerRoom / 3, freeSpace: navmeshAgentSizeBuffer);
             dTree.AddPlaceableToRooms(cube3, settings.cubesPerRoom / 3, freeSpace: navmeshAgentSizeBuffer);
         }
+
+        sw.Stop();
+        Debug.Log("Runtime placing:\t " + sw.Elapsed);
+        sw.Reset();
+        sw.Restart();
+
         dTree.AddPlaceablesToGameObject(tgo);
+
+        sw.Stop();
+        Debug.Log("Runtime add to tgo:\t " + sw.Elapsed);
+        sw.Reset();
+        sw.Restart();
 
         NavMeshSurface nms = tgo.GetComponent<NavMeshSurface>();
         if (nms == null) nms = tgo.AddComponent<NavMeshSurface>();
@@ -117,6 +155,11 @@ public class WorldGenerator {
         // Add spawnPoints to misc terrain data Component
         var miscData = tgo.AddComponent<MiscTerrainData>();
         miscData.SpawnPoints = sp;
+
+        sw.Stop();
+        Debug.Log("Runtime navmesh:\t " + sw.Elapsed);
+        sw.Reset();
+        sw.Restart();
 
         return tgo;
     }

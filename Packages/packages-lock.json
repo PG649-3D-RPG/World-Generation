@@ -5,7 +5,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "7edcd92fd661138493e127777f62bd20d4e1c35e"
+      "hash": "b2792c78a0f911386f236fab75e005ca37d1f8e5"
     },
     "com.pg649.worldgeneration": {
       "version": "file:com.pg649.worldgeneration",
