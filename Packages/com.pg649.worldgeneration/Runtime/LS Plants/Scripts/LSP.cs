@@ -7,9 +7,11 @@ public class LSP : Placeable {
     private LSP_Settings settings;
     private int depth, width;
     private LS_LSystem ls;
+    private GameObject lspgo;
 
     public LSP(LSP_Settings settings) {
         this.settings = settings;
+        this.lspgo = null;
         ls = settings.BuildLSystem();
         SetWidthHeight();
     }
@@ -51,7 +53,10 @@ public class LSP : Placeable {
     //     return segments;
     // }
 
-    public GameObject ToGameObjectPrimitive(bool combine = true) => combine ? ToGameObjectPrimitiveCombined() : ToGameObjectPrimitiveSingle();
+    public GameObject ToGameObjectPrimitive(bool combine = true) {
+        if (lspgo == null) lspgo = combine ? ToGameObjectPrimitiveCombined() : ToGameObjectPrimitiveSingle();
+        return lspgo;
+    }
 
     private GameObject ToGameObjectPrimitiveSingle() {
         GameObject go = new GameObject("Plant");
