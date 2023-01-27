@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 using UnityEngine;
 
 public class LSP : Placeable {
@@ -54,8 +55,10 @@ public class LSP : Placeable {
     // }
 
     public GameObject ToGameObjectPrimitive(bool combine = true) {
-        if (lspgo == null) lspgo = combine ? ToGameObjectPrimitiveCombined() : ToGameObjectPrimitiveSingle();
-        return lspgo;
+        if (lspgo == null) {
+            lspgo = combine ? ToGameObjectPrimitiveCombined() : ToGameObjectPrimitiveSingle();
+            return lspgo;
+        } else return GameObject.Instantiate(lspgo);
     }
 
     private GameObject ToGameObjectPrimitiveSingle() {
@@ -122,9 +125,9 @@ public class LSP : Placeable {
         // nmv.size = bds.size;
         // nmv.center = bds.center;
 
-        // var nmm = go.AddComponent<NavMeshModifier>();
-        // nmm.overrideArea = true;
-        // nmm.area = 1;
+        var nmm = go.AddComponent<NavMeshModifier>();
+        nmm.overrideArea = true;
+        nmm.area = 1;
 
 
         return go;
