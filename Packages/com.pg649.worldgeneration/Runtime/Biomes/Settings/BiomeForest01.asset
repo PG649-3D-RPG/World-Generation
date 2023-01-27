@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c4eb592660abe94d82dad23a1d8faef, type: 3}
   m_Name: BiomeForest01
   m_EditorClassIdentifier: 
-  objectsSquareMeter: 0.1
+  objectsSquareMeter: 0.001
   objects:
   - p: 1
     settings: {fileID: 11400000, guid: 5372403a6ebf86648b3d3208c28c5eb9, type: 2}

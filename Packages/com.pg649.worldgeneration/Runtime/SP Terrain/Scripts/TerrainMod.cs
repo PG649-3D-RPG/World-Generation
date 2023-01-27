@@ -7,11 +7,13 @@ public class TerrainMod{
     private Terrain terrain;
     private int terrainWidth;
     private int terrainHeight;
+    private TerrainMasks terrainMasks;
 
-    public TerrainMod(Terrain terrain, int terrainWidth, int terrainHeight){
+    public TerrainMod(Terrain terrain, int terrainWidth, int terrainHeight, TerrainMasks tm){
         this.terrain = terrain;
         this.terrainWidth = terrainWidth;
         this.terrainHeight = terrainHeight;
+        this.terrainMasks = tm;
     }   
 
     public void MarkSpawnPoints(List<Tuple<Vector3Int, int>> spawnPoints, Texture2D texture){
@@ -26,21 +28,70 @@ public class TerrainMod{
         tla[tlc] = tlSpawnPoints;
         td.terrainLayers = tla;
 
-        //Assign 0f when other parts have textures
+        td.alphamapResolution = terrainWidth * 4;
         float[,,] alphaData = td.GetAlphamaps(0, 0, td.alphamapWidth, td.alphamapHeight);
         for(int i = 0; i < td.alphamapWidth; i++){
             for(int j = 0; j < td.alphamapHeight; j++){
-                alphaData[i,j,tlc] = 1f; 
+                alphaData[i,j,tlc] = 0f; 
             }
         }
-
-        float stepSizeWidth = (float)td.alphamapWidth / terrainWidth;
-        float stepSizeHeight = (float)td.alphamapHeight / terrainHeight;
+        
+        //float stepSizeWidth = (float)td.alphamapWidth / terrainWidth;
+        //float stepSizeHeight = (float)td.alphamapHeight / terrainHeight;
         foreach(Tuple<Vector3Int, int> t in spawnPoints){
             Vector3Int p = t.Item1;
-            alphaData[Mathf.RoundToInt((float)p.z * stepSizeWidth), Mathf.RoundToInt((float)p.x*stepSizeHeight), tlc] = 0f;
+            for(int ix = 0; ix < 4; ix++){
+                for(int iy = 0; iy < 4 ; iy++){
+                    alphaData[(p.z * 4)+ix, (p.x * 4)+iy, tlc] = 1f;
+                }
+            }
+            //alphaData[Mathf.RoundToInt((float)p.z * stepSizeWidth), Mathf.RoundToInt((float)p.x*stepSizeHeight), tlc] = 0f;
         }
         td.SetAlphamaps(0, 0, alphaData);
+    }
+
+    public void ApplyTerrainLayer(Mask mask, TerrainLayer tl){
+        TerrainData td = terrain.terrainData;
+        float[,,] alphaData = td.GetAlphamaps(0, 0, td.alphamapWidth, td.alphamapHeight);
+        float[,,] newAlphaData = new float[alphaData.GetLength(0),alphaData.GetLength(1), alphaData.GetLength(2)+1];
+        for(int i = 0; i < alphaData.GetLength(0); i++){
+            for(int j = 0; j < alphaData.GetLength(1); j++){
+                for(int k = 0; k < alphaData.GetLength(2); k++){
+                    newAlphaData[i,j,k] = alphaData[i,j,k];
+                }
+            }
+        }
+        int tlc = td.terrainLayers.Length;
+        TerrainLayer[] tla = new TerrainLayer[tlc + 1];
+        for(int i = 0; i < tlc; i++){
+            tla[i] = td.terrainLayers[i];
+        }
+        tla[tlc] = tl;
+        td.terrainLayers = tla;
+
+        td.alphamapResolution = terrainWidth * 4;
+        for(int x = 0; x < terrainWidth; x++){
+            for(int y = 0; y < terrainHeight; y++){
+                for(int ix = 0; ix < 4; ix++){
+                    for(int iy = 0; iy < 4 ; iy++){
+                        newAlphaData[(y * 4)+iy, (x * 4)+ix, tlc] = mask[x,y] ? 1f : 0f;
+                    }
+                }
+            }
+        }
+        td.SetAlphamaps(0, 0, newAlphaData);
+    }
+
+    public void ApplyTerrainLayer(Mask mask, Texture2D t){
+        TerrainLayer tl = new TerrainLayer();
+        tl.diffuseTexture = t;
+        ApplyTerrainLayer(mask, tl);
+    }
+
+    public void ApplyTerrainLayers(TerrainLayerSettings s){
+        foreach(TerrainLayerSettings.LayerTuple t in s.layerTuples){
+            ApplyTerrainLayer(terrainMasks.MaskByEnum(t.mask), t.terrainLayer);
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.AI.Navigation;
@@ -82,8 +82,10 @@ public class WorldGenerator {
         };
         h.AddTerrainToGameObject(tgo);
 
-        TerrainMod tmod = new TerrainMod(tgo.GetComponent<Terrain>(), settings.size, settings.size);
-        if (settings.markSpawnPoints) tmod.MarkSpawnPoints(sp, Texture2D.grayTexture);
+        TerrainMod tmod = new TerrainMod(tgo.GetComponent<Terrain>(), settings.size, settings.size, tm);
+        if (settings.markSpawnPoints) tmod.MarkSpawnPoints(sp, Texture2D.redTexture);
+        //tmod.ApplyTerrainLayer(tm.intermediate, Texture2D.whiteTexture);
+        if(settings.terrainLayerSettings != null) tmod.ApplyTerrainLayers(settings.terrainLayerSettings);
 
         sw.Stop();
         Debug.Log("Runtime filters:\t " + sw.Elapsed);
@@ -94,14 +96,17 @@ public class WorldGenerator {
             List<DungeonRoom>[] drla = dTree.GetRoomsByType();
             for (int i = 0; i < drla.Length; i++) {
                 Placeable[] pl = settings.biomeSettings[i].GetPlaceables(settings.seed);
-                Parallel.ForEach(drla[i], drl => {
+                //Parallel.ForEach(drla[i], drl => {
+                    foreach (DungeonRoom drl in drla[i]) {
                     float n = settings.biomeSettings[i].objectsSquareMeter * drl.Width * drl.Depth;
                     for (int j = 0; j < settings.biomeSettings[i].objects.Length; j++) {
-                        for (int k = 0; k < settings.biomeSettings[i].objects[j].p * n; k++) {
-                            if (!drl.PlacePlaceable(pl[j], freeSpace: navmeshAgentSizeBuffer)) break;
-                        }
+                        // for (int k = 0; k < settings.biomeSettings[i].objects[j].p * n; k++) {
+                        //     if (!drl.PlacePlaceable(pl[j], freeSpace: navmeshAgentSizeBuffer)) break;
+                        // }
+                        drl.PlacePlaceable(pl[j], n : (int)(settings.biomeSettings[i].objects[j].p * n),  freeSpace: navmeshAgentSizeBuffer);
                     }
-                });
+                    }
+                //});
             }
             // for (int i = 0; i < drla.Length; i++) {
             //     Placeable[] pl = settings.biomeSettings[i].GetPlaceables(settings.seed);

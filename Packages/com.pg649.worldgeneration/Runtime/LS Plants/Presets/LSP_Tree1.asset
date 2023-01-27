@@ -15,10 +15,10 @@ MonoBehaviour:
   distance: 1
   defaultAngle: 28
   initialDirection: 0
-  thickness: 1
+  thickness: 0.09
   translatePoints: 1
-  startString: FFFFA
+  startString: FFA
   iterations: 7
   rules:
   - A=[B]////[B]////[B]
-  - B=&FFFA
+  - B=&FA

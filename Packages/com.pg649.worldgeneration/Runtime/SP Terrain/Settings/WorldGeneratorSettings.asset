@@ -23,8 +23,8 @@ MonoBehaviour:
   frontBackMinMargin: 11
   frontBackMaxMargin: 16
   levelPlacementProbability: 60
-  numberOfTypes: 3
-  spawnPointsPerRoom: 10
+  numberOfTypes: 2
+  spawnPointsPerRoom: 3
   spawnPointSize: 0
   markSpawnPoints: 1
   minCorridorHeight: 2
@@ -35,6 +35,6 @@ MonoBehaviour:
   cubesPerRoom: 30
   noNavMeshAboveHeight: 0.125
   biomeSettings:
-  - {fileID: 11400000, guid: b1fc63fb329b2f04a90c194d449e0fbc, type: 2}
   - {fileID: 11400000, guid: 8c66b5c6bfcd52341ac14d1066d7ec99, type: 2}
   - {fileID: 11400000, guid: d7334ed9c09d1094ea9e042b370b3795, type: 2}
+  terrainLayerSettings: {fileID: 11400000, guid: 098b89fb26ca424479ea82f475eb3e85, type: 2}

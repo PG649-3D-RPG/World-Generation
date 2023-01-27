@@ -13,14 +13,15 @@ public enum TerrainMasksE{
     Intermediate,
     LevelType,
     LevelTypeFree,
-    levelTypeOccupied
+    levelTypeOccupied,
+    levelPaths
 }
 
 public class TerrainMasks{
-    public Mask full,levelsCorridors, levels, levelsFree, levelsOccupied, corridors, intermediate;
+    public Mask full,levelsCorridors, levels, levelsFree, levelsOccupied, corridors, intermediate, levelPaths;
     public Mask[] levelType, levelTypeFree, levelTypeOccupied;
 
-    public TerrainMasks(Mask levels, Mask levelsFree, Mask corridors, Mask[] levelType){
+    public TerrainMasks(Mask levels, Mask levelsFree, Mask corridors, Mask[] levelType, Mask levelPaths = null){
         this.full = levels.Map(x => true);
         this.levelsCorridors = levels + corridors;
         this.levels = levels;
@@ -31,6 +32,7 @@ public class TerrainMasks{
         this.levelType = levelType;
         levelTypeFree = new Mask[levelType.Length];
         levelTypeOccupied = new Mask[levelType.Length];
+        this.levelPaths = levelPaths == null ? !full : levelPaths;
         for(int i = 0; i < levelType.Length; i++){
             levelTypeFree[i] = levelType[i] - levelsOccupied;
             levelTypeOccupied[i] = levelsOccupied * levelType[i];
@@ -50,6 +52,7 @@ public class TerrainMasks{
             case TerrainMasksE.LevelType: return levelType[type];
             case TerrainMasksE.LevelTypeFree: return levelTypeFree[type];
             case TerrainMasksE.levelTypeOccupied: return levelTypeOccupied[type];
+            case TerrainMasksE.levelPaths: return levelPaths;
             default: return levelsCorridors;
 
         }

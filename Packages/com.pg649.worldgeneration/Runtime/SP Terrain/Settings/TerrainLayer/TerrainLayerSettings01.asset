@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c45759cd042dcdb419b7ad0bbb38b6b9, type: 3}
+  m_Name: TerrainLayerSettings01
+  m_EditorClassIdentifier: 
+  layerTuples:
+  - mask: 10
+    terrainLayer: {fileID: 8574412962073106934, guid: 88dd3ed9e7fc7004daca7f629f02fc03, type: 2}
+  - mask: 5
+    terrainLayer: {fileID: 8574412962073106934, guid: 88dd3ed9e7fc7004daca7f629f02fc03, type: 2}
+  - mask: 3
+    terrainLayer: {fileID: 8574412962073106934, guid: cdc2c8a6a494f9543a74c84f5e244ae2, type: 2}
+  - mask: 6
+    terrainLayer: {fileID: 8574412962073106934, guid: 7ecb2777050d2fb44abdfadf9392836d, type: 2}

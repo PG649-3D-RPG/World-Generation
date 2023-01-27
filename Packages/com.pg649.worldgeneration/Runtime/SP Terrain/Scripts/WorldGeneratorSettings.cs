@@ -37,4 +37,5 @@ public class WorldGeneratorSettings : ScriptableObject {
     public float noNavMeshAboveHeight = 0.125f;
     [Space]
     public BiomeSettings[] biomeSettings;
+    public TerrainLayerSettings terrainLayerSettings;
 }

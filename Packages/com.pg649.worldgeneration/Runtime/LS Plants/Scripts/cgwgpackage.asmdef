@@ -1,0 +1,18 @@
+{
+    "name": "cgpackage",
+    "rootNamespace": "",
+    "references": [
+        "GUID:51913108b0eb5694892af00261c200bf",
+        "GUID:bcf1c0f5ac26d3545a173f55e2f6c807",
+        "GUID:8c4dd21966739024fbd72155091d199e"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

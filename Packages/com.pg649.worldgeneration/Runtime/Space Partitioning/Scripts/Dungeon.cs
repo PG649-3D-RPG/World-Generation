@@ -522,12 +522,19 @@ public class DungeonTreeT : Tree<DungeonTreeNode> {
         return m;
     }
 
+   public Mask LevelPathsMask(Mask m = null, int type = -1) {
+        m ??= new Mask(node.Size[0], node.Size[1]);
+        if (node.Room != null && (node.Room.Type == type || type == -1)) node.Room.PathsMask(m);
+        foreach (DungeonTreeT c in children) c.LevelPathsMask(m, type: type);
+        return m;
+    }
+
     public TerrainMasks ToTerrainMasks() {
         Mask[] typeMasks = new Mask[node.NumberOfTypes];
         for (int i = 0; i < node.NumberOfTypes; i++) {
             typeMasks[i] = RoomsMask(type: i);
         }
-        return new TerrainMasks(RoomsMask(), RoomsFreeMask(), CorridorsMask(), typeMasks);
+        return new TerrainMasks(RoomsMask(), RoomsFreeMask(), CorridorsMask(), typeMasks, levelPaths : LevelPathsMask());
     }
 
     public List<DungeonRoom> GetRooms() {
