@@ -66,6 +66,7 @@ public class LSP : Placeable {
         for (int i = 0; i < ls.segments.Count; i++) {
             Tuple<Vector3, Vector3> t = ls.segments[i];
             GameObject g = ls.fromRule[i].Item2 == 'A' ? GameObject.CreatePrimitive(PrimitiveType.Cylinder) : GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            // GameObject g = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             Vector3 mid = t.Item1 + ((t.Item2 - t.Item1) / 2);
             g.transform.position = mid;
             Vector3 start = t.Item1;
@@ -109,9 +110,10 @@ public class LSP : Placeable {
         go.AddComponent<MeshRenderer>();
         go.GetComponent<Renderer>().material = Resources.Load<Material>("Materials/instancing");
 
-        mFilter.mesh = new Mesh {
-            // indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
-        };
+        // mFilter.mesh = new Mesh {
+        //     indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
+        // };
+        mFilter.mesh = new Mesh();
         mFilter.mesh.CombineMeshes(combine);
         if (optimize) {
             mFilter.mesh.RecalculateBounds();
