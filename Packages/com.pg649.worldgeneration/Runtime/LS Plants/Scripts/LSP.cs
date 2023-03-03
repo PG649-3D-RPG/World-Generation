@@ -38,7 +38,7 @@ public class LSP : Placeable {
     }
 
     public override GameObject ToGameObject() {
-        return ToGameObjectPrimitive();
+        return ToGameObjectPrimitive(combine: true);
         //GameObject go = new GameObject("Plant");
         //Segment[] segments = LSystemToSegments();
         //Metaball m = Metaball.BuildFromSegments(segments, FalloffFunctions.POLYNOMIAL2);

@@ -138,7 +138,7 @@ public static class TerrainShaderCPU {
             }
         }
     }
-    /*
+    
     private static void AverageFilterMT3x3Worker(int id, int _size_input, float[] _input, float[] _output) {
         int row = id / _size_input; // integer division => row
         int col = id % _size_input; // modulo => column
@@ -199,7 +199,7 @@ public static class TerrainShaderCPU {
                 input[i, j] = heightsFlat[i * (side_length) + j];
             }
         }
-    }*/
+    }
     public static void AverageFilterMT3x3Burst(float[,] input, Mask mask, int passes, bool invertMask = false) {
         //System.Diagnostics.Stopwatch sw = new();
         //sw.Restart();

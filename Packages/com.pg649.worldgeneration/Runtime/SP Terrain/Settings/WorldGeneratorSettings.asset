@@ -12,20 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6ec52f849a057549bb3c69c06979b6a, type: 3}
   m_Name: WorldGeneratorSettings
   m_EditorClassIdentifier: 
-  seed: 54
+  seed: 14
   size: 512
   partitionMode: 0
   minPartitionWidth: 128
   minPartitionDepth: 128
   skipChildren: 0
-  leftRightMinMargin: 11
-  leftRightMaxMargin: 16
-  frontBackMinMargin: 11
-  frontBackMaxMargin: 16
-  levelPlacementProbability: 60
+  leftRightMinMargin: 24
+  leftRightMaxMargin: 48
+  frontBackMinMargin: 24
+  frontBackMaxMargin: 48
+  levelPlacementProbability: 76
   numberOfTypes: 2
   spawnPointsPerRoom: 3
-  spawnPointSize: 0
+  spawnPointSize: 2
   markSpawnPoints: 1
   minCorridorHeight: 2
   maxCorridorHeight: 3
