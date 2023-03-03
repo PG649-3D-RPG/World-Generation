@@ -13,9 +13,5 @@ MonoBehaviour:
   m_Name: TerrainLayerSettings01
   m_EditorClassIdentifier: 
   layerTuples:
-  - mask: 10
-    terrainLayer: {fileID: 8574412962073106934, guid: 88dd3ed9e7fc7004daca7f629f02fc03, type: 2}
-  - mask: 2
-    terrainLayer: {fileID: 8574412962073106934, guid: cdc2c8a6a494f9543a74c84f5e244ae2, type: 2}
-  - mask: 5
-    terrainLayer: {fileID: 8574412962073106934, guid: cdc2c8a6a494f9543a74c84f5e244ae2, type: 2}
+  - mask: 1
+    terrainLayer: {fileID: 8574412962073106934, guid: 936f295672f556b4384d13911da57ae3, type: 2}
