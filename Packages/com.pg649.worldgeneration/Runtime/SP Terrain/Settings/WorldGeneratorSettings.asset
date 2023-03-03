@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: WorldGeneratorSettings
   m_EditorClassIdentifier: 
   seed: 54
-  size: 512
+  size: 1024
   partitionMode: 0
   minPartitionWidth: 128
   minPartitionDepth: 128
@@ -23,7 +23,7 @@ MonoBehaviour:
   frontBackMinMargin: 11
   frontBackMaxMargin: 16
   levelPlacementProbability: 60
-  numberOfTypes: 2
+  numberOfTypes: 3
   spawnPointsPerRoom: 3
   spawnPointSize: 0
   markSpawnPoints: 1
@@ -37,4 +37,5 @@ MonoBehaviour:
   biomeSettings:
   - {fileID: 11400000, guid: 8c66b5c6bfcd52341ac14d1066d7ec99, type: 2}
   - {fileID: 11400000, guid: d7334ed9c09d1094ea9e042b370b3795, type: 2}
+  - {fileID: 11400000, guid: 033c6bcd00109d640a0ea4841109c01a, type: 2}
   terrainLayerSettings: {fileID: 11400000, guid: 098b89fb26ca424479ea82f475eb3e85, type: 2}

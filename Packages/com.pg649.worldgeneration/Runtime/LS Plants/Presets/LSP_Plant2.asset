@@ -10,15 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4510a8384883b8b4eaa21d0fab727d49, type: 3}
-  m_Name: LSP_Tree10
+  m_Name: LSP_Plant2
   m_EditorClassIdentifier: 
-  distance: 0.5
-  defaultAngle: 45
+  distance: 0.2
+  defaultAngle: 36
   initialDirection: 0
-  thickness: 0.1
+  thickness: 0.05
   translatePoints: 1
-  startString: A
-  iterations: 8
+  startString: '[B]FFF[B]F(0.2)CF(0.2)DF(0.2)E'
+  iterations: 4
   rules:
-  - A=FFF/[&&B]/[&&B]/[&&B]/[&&B]/[&&B]/[&&B]/[&&B]/[&&B]A
-  - B=[+F][-F]FB
+  - B=[A]/[A]/[A]/[A]/[A]/[A]/[A]/[A]/[A]/[A]
+  - A=&FA
+  - C=[G]/[G]/[G]/[G]/[G]/[G]/[G]/[G]/[G]/[G]
+  - G=&F(0.15)G
+  - D=[H]/[H]/[H]/[H]/[H]/[H]/[H]/[H]/[H]/[H]
+  - H=&F(0.1)H
+  - E=[I]/[I]/[I]/[I]/[I]/[I]/[I]/[I]/[I]/[I]
+  - I=&F(0.05)I

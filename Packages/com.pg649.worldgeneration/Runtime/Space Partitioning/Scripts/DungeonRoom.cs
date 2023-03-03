@@ -269,14 +269,14 @@ public class DungeonRoom : IGameObjectable{
                     for(int m = t.Item2 - p.Height/2; m <= t.Item2 + p.Height/2; m++){
                         free[k,m] = false;
                         for(int c = 0; c <= freeSpace; c++){
-                            a[k-c,m] = 1f;
-                            a[k+c,m] = 1f;
-                            a[k,m-c] = 1f;
-                            a[k,m+c] = 1f;
-                            a[k-c,m-c] = 1f;
-                            a[k+c,m+c] = 1f;
-                            a[k-c,m+c] = 1f;
-                            a[k+c,m-c] = 1f;
+                            // a[k-c,m] = 1f;
+                            // a[k+c,m] = 1f;
+                            // a[k,m-c] = 1f;
+                            // a[k,m+c] = 1f;
+                            // a[k-c,m-c] = 1f;
+                            // a[k+c,m+c] = 1f;
+                            // a[k-c,m+c] = 1f;
+                            // a[k+c,m-c] = 1f;
                         }
                     }
                 }

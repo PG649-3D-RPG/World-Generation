@@ -15,9 +15,7 @@ MonoBehaviour:
   layerTuples:
   - mask: 10
     terrainLayer: {fileID: 8574412962073106934, guid: 88dd3ed9e7fc7004daca7f629f02fc03, type: 2}
-  - mask: 5
-    terrainLayer: {fileID: 8574412962073106934, guid: 88dd3ed9e7fc7004daca7f629f02fc03, type: 2}
-  - mask: 3
+  - mask: 2
     terrainLayer: {fileID: 8574412962073106934, guid: cdc2c8a6a494f9543a74c84f5e244ae2, type: 2}
-  - mask: 6
-    terrainLayer: {fileID: 8574412962073106934, guid: 7ecb2777050d2fb44abdfadf9392836d, type: 2}
+  - mask: 5
+    terrainLayer: {fileID: 8574412962073106934, guid: cdc2c8a6a494f9543a74c84f5e244ae2, type: 2}

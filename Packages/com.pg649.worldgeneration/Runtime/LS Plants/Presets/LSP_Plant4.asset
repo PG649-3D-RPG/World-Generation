@@ -10,15 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4510a8384883b8b4eaa21d0fab727d49, type: 3}
-  m_Name: LSP_Tree10
+  m_Name: LSP_Plant4
   m_EditorClassIdentifier: 
-  distance: 0.5
+  distance: 0.3
   defaultAngle: 45
   initialDirection: 0
-  thickness: 0.1
+  thickness: 0.03
   translatePoints: 1
-  startString: A
-  iterations: 8
+  startString: '[B][D]FFFFFFFG'
+  iterations: 4
   rules:
-  - A=FFF/[&&B]/[&&B]/[&&B]/[&&B]/[&&B]/[&&B]/[&&B]/[&&B]A
-  - B=[+F][-F]FB
+  - B=[A]/[A]/[A]/[A]/[A]/[A]/[A]/[A]
+  - A=&FCG
+  - C=^FFFF
+  - D=[E]/[E]/[E]/[E]/[E]/[E]/[E]/[E]
+  - E=&(22.5)CG
+  - G=[A]/[A]/[A]/[A]/[A]/[A]/[A]/[A]

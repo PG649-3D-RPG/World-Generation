@@ -86,6 +86,7 @@ public class WorldGenerator {
         if (settings.markSpawnPoints) tmod.MarkSpawnPoints(sp, Texture2D.redTexture);
         //tmod.ApplyTerrainLayer(tm.intermediate, Texture2D.whiteTexture);
         if(settings.terrainLayerSettings != null) tmod.ApplyTerrainLayers(settings.terrainLayerSettings);
+        tmod.ApplyPerlinNoise(tm.intermediate);
 
         sw.Stop();
         Debug.Log("Runtime filters:\t " + sw.Elapsed);
@@ -96,17 +97,15 @@ public class WorldGenerator {
             List<DungeonRoom>[] drla = dTree.GetRoomsByType();
             for (int i = 0; i < drla.Length; i++) {
                 Placeable[] pl = settings.biomeSettings[i].GetPlaceables(settings.seed);
-                //Parallel.ForEach(drla[i], drl => {
-                    foreach (DungeonRoom drl in drla[i]) {
+                Parallel.ForEach(drla[i], drl => {
                     float n = settings.biomeSettings[i].objectsSquareMeter * drl.Width * drl.Depth;
-                    for (int j = 0; j < settings.biomeSettings[i].objects.Length; j++) {
-                        // for (int k = 0; k < settings.biomeSettings[i].objects[j].p * n; k++) {
-                        //     if (!drl.PlacePlaceable(pl[j], freeSpace: navmeshAgentSizeBuffer)) break;
-                        // }
-                        drl.PlacePlaceable(pl[j], n : (int)(settings.biomeSettings[i].objects[j].p * n),  freeSpace: navmeshAgentSizeBuffer);
+                    for (int j = 0; j < pl.Length; j++) {
+                        for (int k = 0; k < settings.biomeSettings[i].objects[j].p * n; k++) {
+                            if (!drl.PlacePlaceable(pl[j], freeSpace: navmeshAgentSizeBuffer)) break;
+                        }
+                        // drl.PlacePlaceable(pl[j], n : (int)(settings.biomeSettings[i].objects[j].p * n),  freeSpace: navmeshAgentSizeBuffer);
                     }
-                    }
-                //});
+                });
             }
             // for (int i = 0; i < drla.Length; i++) {
             //     Placeable[] pl = settings.biomeSettings[i].GetPlaceables(settings.seed);

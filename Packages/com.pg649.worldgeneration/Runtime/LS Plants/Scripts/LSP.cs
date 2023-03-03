@@ -71,7 +71,7 @@ public class LSP : Placeable {
             Vector3 start = t.Item1;
             Vector3 end = t.Item2;
             Vector3 sd = (end - start).normalized;
-            g.transform.localScale = new Vector3(.1f, Vector3.Distance(start, end) / 2, .1f);
+            g.transform.localScale = new Vector3(settings.thickness, Vector3.Distance(start, end) / 2, settings.thickness);
             g.transform.rotation = Quaternion.LookRotation(end - start) * Quaternion.FromToRotation(Vector3.up, Vector3.forward);// * Quaternion.FromToRotation(Vector3.left, -Vector3.left);
             g.transform.parent = go.transform;
         }
@@ -94,7 +94,7 @@ public class LSP : Placeable {
             Vector3 start = t.Item1;
             Vector3 end = t.Item2;
             // Vector3 sd = (end - start).normalized;
-            g.transform.localScale = new Vector3(.1f, Vector3.Distance(start, end) / 2, .1f);
+            g.transform.localScale = new Vector3(settings.thickness, Vector3.Distance(start, end) / 2, settings.thickness);
             g.transform.rotation = Quaternion.LookRotation(end - start) * Quaternion.FromToRotation(Vector3.up, Vector3.forward);// * Quaternion.FromToRotation(Vector3.left, -Vector3.left);
             meshFilters[i] = g.GetComponent<MeshFilter>();
         }

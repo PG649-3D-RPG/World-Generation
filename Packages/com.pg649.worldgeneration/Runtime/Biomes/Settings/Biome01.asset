@@ -10,11 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c4eb592660abe94d82dad23a1d8faef, type: 3}
-  m_Name: BiomeTest
+  m_Name: Biome01
   m_EditorClassIdentifier: 
-  objectsSquareMeter: 0.1
+  objectsSquareMeter: 0.004
   objects:
-  - p: 0.5
+  - p: 0.3
+    settings: {fileID: 11400000, guid: f64652ff76cc4764f88232c531b9bc9a, type: 2}
+  - p: 0.3
+    settings: {fileID: 11400000, guid: 42a2303310cd0eb4ebf56012f331a5c5, type: 2}
+  - p: 0.2
+    settings: {fileID: 11400000, guid: 64668263d9f4f9e4bae6d4a8c8238c94, type: 2}
+  - p: 0.2
     settings: {fileID: 11400000, guid: 5372403a6ebf86648b3d3208c28c5eb9, type: 2}
-  - p: 0.5
-    settings: {fileID: 11400000, guid: 84a44d6fdc2f1f34f9c7e8c3dab32af1, type: 2}
