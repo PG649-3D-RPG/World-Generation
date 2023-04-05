@@ -3,6 +3,7 @@
 [CreateAssetMenu(fileName = "WorldGeneratorSettings", menuName = "PG649-WorldGeneration/World Generator Settings")]
 public class WorldGeneratorSettings : ScriptableObject {
     [Header("Random")]
+    [Tooltip("If set to 0, a random seed is used.")]
     public int seed = 42;
     [Header("Space Partitioning")]
     public int size = 1024;

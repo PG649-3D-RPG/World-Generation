@@ -16,10 +16,6 @@ public class WorldGenerator {
     }
 
     public static GameObject Generate(WorldGeneratorSettings settings) {
-        System.Diagnostics.Stopwatch sw = new();
-
-        sw.Start();
-
         var nmbs = GetNavMeshBuildSettings();
         //Debug.Log(nmbs.agentRadius);
         var voxelSize = nmbs.agentRadius / 8; // more accurate navmesh
@@ -34,7 +30,15 @@ public class WorldGenerator {
         int[] minSize = new int[] { settings.minPartitionWidth, settings.minPartitionDepth };
         Tuple<int, int>[] minMaxMargin = new Tuple<int, int>[] { new Tuple<int, int>(settings.leftRightMinMargin, settings.leftRightMaxMargin), new Tuple<int, int>(settings.frontBackMinMargin, settings.frontBackMaxMargin) };
         SPTreeT spTree;
-        System.Random rand = new System.Random(settings.seed);
+        int seed;
+        if (settings.seed == 0) {
+            System.Random rtmp = new System.Random();
+            seed = rtmp.Next();
+        } else {
+            seed = settings.seed;
+        }
+        // Debug.Log("World Seed: " + seed);
+        System.Random rand = new System.Random(seed);
         switch (settings.partitionMode) {
             case SPTreeT.PartitionMode.KDTreeRandom:
                 spTree = new SPTreeT(spsize, SPTreeT.KDTreeRandom(minSize), rand: rand, skipChildren: settings.skipChildren);
@@ -58,12 +62,6 @@ public class WorldGenerator {
 
         TerrainMasks tm = dTree.ToTerrainMasks();
 
-
-        sw.Stop();
-        Debug.Log("Runtime pre:\t " + sw.Elapsed);
-        sw.Reset();
-        sw.Restart();
-
         h.SetByMask(tm.intermediate, 70);
         h.AverageFilter(mask: tm.intermediate, numberOfRuns: 600);
         h.PerlinNoise(maxAddedHeight: 20f, scale: 0.03f, tm.intermediate, fractalRuns: 3);
@@ -85,13 +83,8 @@ public class WorldGenerator {
         TerrainMod tmod = new TerrainMod(tgo.GetComponent<Terrain>(), settings.size, settings.size, tm);
         if (settings.markSpawnPoints) tmod.MarkSpawnPoints(sp, Texture2D.redTexture);
         //tmod.ApplyTerrainLayer(tm.intermediate, Texture2D.whiteTexture);
-        if(settings.terrainLayerSettings != null) tmod.ApplyTerrainLayers(settings.terrainLayerSettings);
+        if (settings.terrainLayerSettings != null) tmod.ApplyTerrainLayers(settings.terrainLayerSettings);
         tmod.ApplyPerlinNoise(tm.intermediate);
-
-        sw.Stop();
-        Debug.Log("Runtime filters:\t " + sw.Elapsed);
-        sw.Reset();
-        sw.Restart();
 
         if (settings.biomeSettings.Length == settings.numberOfTypes && settings.numberOfTypes > 0) {
             List<DungeonRoom>[] drla = dTree.GetRoomsByType();
@@ -127,17 +120,9 @@ public class WorldGenerator {
             dTree.AddPlaceableToRooms(cube3, settings.cubesPerRoom / 3, freeSpace: navmeshAgentSizeBuffer);
         }
 
-        sw.Stop();
-        Debug.Log("Runtime placing:\t " + sw.Elapsed);
-        sw.Reset();
-        sw.Restart();
 
         dTree.AddPlaceablesToGameObject(tgo);
 
-        sw.Stop();
-        Debug.Log("Runtime add to tgo:\t " + sw.Elapsed);
-        sw.Reset();
-        sw.Restart();
 
         NavMeshSurface nms = tgo.GetComponent<NavMeshSurface>();
         if (nms == null) nms = tgo.AddComponent<NavMeshSurface>();
@@ -160,10 +145,6 @@ public class WorldGenerator {
         var miscData = tgo.AddComponent<MiscTerrainData>();
         miscData.SpawnPoints = sp;
 
-        sw.Stop();
-        Debug.Log("Runtime navmesh:\t " + sw.Elapsed);
-        sw.Reset();
-        sw.Restart();
 
         return tgo;
     }
