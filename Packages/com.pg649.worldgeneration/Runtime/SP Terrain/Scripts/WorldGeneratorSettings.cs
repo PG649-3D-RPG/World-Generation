@@ -32,6 +32,7 @@ public class WorldGeneratorSettings : ScriptableObject {
     [Header("PlaceObjects")]
     public bool placeObjects = true;
     public int cubesPerRoom = 12;
+    public int plantsPerRoom = 8;
     //public int freeSpaceBetweenObjects = 2;
     [Header("NavMesh")]
     //public float agentRadius = 2.25f;

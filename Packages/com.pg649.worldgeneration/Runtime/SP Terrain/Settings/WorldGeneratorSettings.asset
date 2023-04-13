@@ -33,6 +33,7 @@ MonoBehaviour:
   freeCorridors: 1
   placeObjects: 1
   cubesPerRoom: 30
+  plantsPerRoom: 8
   noNavMeshAboveHeight: 0.125
   biomeSettings:
   - {fileID: 11400000, guid: 8c66b5c6bfcd52341ac14d1066d7ec99, type: 2}
